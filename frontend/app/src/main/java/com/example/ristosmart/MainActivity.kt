@@ -40,8 +40,11 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
 
         // 2. Forgot Route
         composable("forgot") {
-            // Here forgotScreen()
-            Forgot()
+            Forgot(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
