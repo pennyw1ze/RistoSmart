@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,13 +23,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ristosmart.model.User
 
 
 @Composable
 fun LogInScreen(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = viewModel(),
-    onNavigateToForgot: () -> Unit
+    onNavigateToForgot: () -> Unit,
+    onLoginSuccess: (User) -> Unit
 ) {
     // Used to interact with viewmodel by collecting states
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -38,6 +41,13 @@ fun LogInScreen(
         if (uiState.forgotPressed) {
             onNavigateToForgot()
             viewModel.onForgotPressedConsumed() // Reset the state immediately
+        }
+    }
+
+    LaunchedEffect(uiState.loginSuccess) {
+        if (uiState.loginSuccess && uiState.user != null) {
+            onLoginSuccess(uiState.user!!)
+            viewModel.onLoginSuccessConsumed()
         }
     }
 
@@ -53,14 +63,24 @@ fun LogInScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        if (uiState.error != null) {
+            Text(
+                text = uiState.error!!,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
         OutlinedTextField(
             //these are all parameters of this outlinedtextfield
             //value is specified by the view model
             value = uiState.email,
             //onvaluechange specifies what to do when text is changed (event handler)
             onValueChange = { viewModel.onEmailChange(it) }, // Send event to ViewModel
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Username") },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !uiState.isLoading,
+            isError = uiState.error != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -69,7 +89,9 @@ fun LogInScreen(
             value = uiState.password,
             onValueChange = { viewModel.onPasswordChange(it) },
             label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !uiState.isLoading,
+            isError = uiState.error != null
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -79,7 +101,8 @@ fun LogInScreen(
             Checkbox(
                 checked = uiState.rememberMe, // Replace with state variable like `rememberMe`
                 /* !API CALL MUST BE HANDLED WITH VIEWMODEL! */
-                onCheckedChange = { viewModel.onRememberMeChange(it) }
+                onCheckedChange = { viewModel.onRememberMeChange(it) },
+                enabled = !uiState.isLoading
             )
 
             Text(
@@ -89,20 +112,26 @@ fun LogInScreen(
 
         }
 
-        TextButton(onClick = { viewModel.onForgotPressed(true) }) {
+        TextButton(
+            onClick = { viewModel.onForgotPressed(true) },
+            enabled = !uiState.isLoading
+        ) {
             Text(
                 text = "Forgot how to login?",
                 style = MaterialTheme.typography.bodySmall
             )
         }
 
-        Button(
-            onClick = { viewModel.login() },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = uiState.email.isNotBlank()
-        ) {
-            Text(text = "Log In")
+        if (uiState.isLoading) {
+            CircularProgressIndicator()
+        } else {
+            Button(
+                onClick = { viewModel.login() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.email.isNotBlank() && uiState.password.isNotBlank()
+            ) {
+                Text(text = "Log In")
+            }
         }
     }
 }
-
