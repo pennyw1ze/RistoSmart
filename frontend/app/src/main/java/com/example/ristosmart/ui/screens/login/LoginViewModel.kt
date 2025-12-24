@@ -20,6 +20,10 @@ class LoginViewModel : ViewModel() {
         _uiState.update { it.copy(email = newEmail) }
     }
 
+    fun onPasswordChange(newPassword: String) {
+        _uiState.update { it.copy(password = newPassword) }
+    }
+
     fun onRememberMeChange(newRememberMe: Boolean) {
         _uiState.update { it.copy(rememberMe = newRememberMe) }
     }

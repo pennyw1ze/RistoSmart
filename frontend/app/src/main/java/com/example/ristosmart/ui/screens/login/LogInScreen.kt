@@ -65,6 +65,16 @@ fun LogInScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        OutlinedTextField(
+            value = uiState.password,
+            onValueChange = { viewModel.onPasswordChange(it) },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = uiState.rememberMe, // Replace with state variable like `rememberMe`
