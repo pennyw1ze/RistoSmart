@@ -12,9 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.ristosmart.ui.screens.checkin.CheckinScreen
 import com.example.ristosmart.ui.screens.login.LogInScreen
 import com.example.ristosmart.ui.screens.login.Forgot
-import com.example.ristosmart.ui.theme.RistoSmartTheme
+//import com.example.ristosmart.ui.theme.RistoSmartTheme
 
 
 @Composable
@@ -40,11 +41,7 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
 
         // 2. Forgot Route
         composable("forgot") {
-            Forgot(
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
+            CheckinScreen()
         }
     }
 }
@@ -55,11 +52,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RistoSmartTheme {Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                RistoSmartApp(modifier = Modifier)
 
-                RistoSmartApp(modifier = Modifier.padding(innerPadding))
-            }
             }
         }
-    }
 }
+
