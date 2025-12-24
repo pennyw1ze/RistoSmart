@@ -1,4 +1,4 @@
-package com.example.ristosmart.ui.screens
+package com.example.ristosmart.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
