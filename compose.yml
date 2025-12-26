@@ -11,8 +11,7 @@ services:
     networks:
       - ristosmart_network
   backend:
-    build:
-      context: ./backend
+    image: rickythewoof/ristosmart:latest
     container_name: ristosmart_backend
     environment:
       - DB_HOST=${DB_HOST}
