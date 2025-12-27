@@ -9,12 +9,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
+import android.location.Location
 
 class CheckinViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckinUiState())
     val uiState: StateFlow<CheckinUiState> = _uiState.asStateFlow()
+
+    // Example fixed coordinates (e.g., center of Rome)
+    // Replace these with your actual restaurant coordinates
+    private val RESTAURANT_LAT = 41.9028
+    private val RESTAURANT_LNG = 12.4964
+    private val ALLOWED_DISTANCE_METERS = 100.0f // 100 meters radius
 
     init {
         // Simulate fetching data from API on init
@@ -48,13 +54,28 @@ class CheckinViewModel : ViewModel() {
         println("Navbar item $id pressed. Handle navigation or API call here.")
     }
 
-    fun onCheckinPressed() {
-        // Handle checkin logic here
-        viewModelScope.launch {
-            // Simulate API call
-            delay(500)
-            println("Checkin pressed")
-        }
+    fun verifyLocation(currentLocation: Location?): Boolean {
+        if (currentLocation == null) return false
+        
+        val results = FloatArray(1)
+        Location.distanceBetween(
+            currentLocation.latitude,
+            currentLocation.longitude,
+            RESTAURANT_LAT,
+            RESTAURANT_LNG,
+            results
+        )
+        
+        val distanceInMeters = results[0]
+        return distanceInMeters <= ALLOWED_DISTANCE_METERS
+    }
+    
+    fun onLocationVerified() {
+         _uiState.update { it.copy(isLocationVerified = true) }
+    }
+    
+    fun onLocationVerifyConsumed() {
+         _uiState.update { it.copy(isLocationVerified = false) }
     }
 }
 
@@ -63,5 +84,6 @@ data class CheckinUiState(
     val time: String = "--:--",
     val isLoading: Boolean = false,
     val selectedNavIndex: Int = 0,
-    val userRole: String = ""
+    val userRole: String = "",
+    val isLocationVerified: Boolean = false
 )

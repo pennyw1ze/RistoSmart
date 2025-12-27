@@ -57,7 +57,18 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
 
         // 3. Checkin Route
         composable("checkin") {
-            CheckinScreen()
+            CheckinScreen(
+                onNavigateToChef = {
+                    navController.navigate("kitchen_staff_home") {
+                        popUpTo("checkin") { inclusive = true }
+                    }
+                },
+                onNavigateToWaiter = {
+                    navController.navigate("waiter_home") {
+                         popUpTo("checkin") { inclusive = true }
+                    }
+                }
+            )
         }
 
         // 4. Waiter Home Route
