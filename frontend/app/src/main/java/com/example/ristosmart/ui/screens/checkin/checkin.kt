@@ -2,19 +2,22 @@ package com.example.ristosmart.ui.screens.checkin
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.location.Location
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,10 +53,19 @@ fun CheckinScreen(
     val context = LocalContext.current
     var permissionError by remember { mutableStateOf<String?>(null) }
     var locationError by remember { mutableStateOf<String?>(null) }
+    
+    // State for button animation
+    var isCheckingIn by remember { mutableStateOf(false) }
+    val buttonScale by animateFloatAsState(
+        targetValue = if (isCheckingIn) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "Button Scale Animation"
+    )
 
     // Navigation side-effect
     LaunchedEffect(uiState.isLocationVerified) {
         if (uiState.isLocationVerified) {
+            isCheckingIn = false // Stop animation
             when (uiState.userRole) {
                 "chef" -> onNavigateToChef()
                 "waiter" -> onNavigateToWaiter()
@@ -64,6 +77,9 @@ fun CheckinScreen(
 
     // Function to get location
     fun getCurrentLocation() {
+        isCheckingIn = true // Start loading/animation state
+        locationError = null // Clear previous errors
+        
         try {
             val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
             
@@ -82,15 +98,19 @@ fun CheckinScreen(
                         locationError = null
                     } else {
                         locationError = "You are not at the restaurant location!"
+                        isCheckingIn = false
                     }
                 } else {
                     locationError = "Unable to retrieve location. Make sure GPS is on."
+                    isCheckingIn = false
                 }
             }.addOnFailureListener {
                 locationError = "Error getting location: ${it.message}"
+                isCheckingIn = false
             }
         } catch (e: Exception) {
             locationError = "Error: ${e.message}"
+            isCheckingIn = false
         }
     }
 
@@ -106,6 +126,7 @@ fun CheckinScreen(
                 getCurrentLocation()
             } else {
                 permissionError = "Location permission is required to check in."
+                isCheckingIn = false
             }
         }
     )
@@ -166,17 +187,32 @@ fun CheckinScreen(
 
                     Button(
                         onClick = { 
-                            locationPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                            if (!isCheckingIn) {
+                                locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
                                 )
-                            )
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
-                        border = BorderStroke(1.dp, Color.Black)
+                        border = BorderStroke(1.dp, Color.Black),
+                        modifier = Modifier.graphicsLayer(
+                            scaleX = buttonScale,
+                            scaleY = buttonScale
+                        ),
+                        enabled = !isCheckingIn
                     ) {
-                        Text(text = "Check In", color = Color.Black)
+                        if (isCheckingIn) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.Black,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(text = "Check In", color = Color.Black)
+                        }
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
