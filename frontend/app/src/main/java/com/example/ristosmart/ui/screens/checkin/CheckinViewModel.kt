@@ -2,6 +2,7 @@ package com.example.ristosmart.ui.screens.checkin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ristosmart.repository.TokenRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,12 @@ class CheckinViewModel : ViewModel() {
     init {
         // Simulate fetching data from API on init
         fetchStatus()
+        fetchUserRole()
+    }
+
+    private fun fetchUserRole() {
+        val role = TokenRepository.userRole.value
+        _uiState.update { it.copy(userRole = role ?: "Unknown") }
     }
 
     private fun fetchStatus() {
@@ -55,5 +62,6 @@ data class CheckinUiState(
     val status: String = "Loading...",
     val time: String = "--:--",
     val isLoading: Boolean = false,
-    val selectedNavIndex: Int = 0
+    val selectedNavIndex: Int = 0,
+    val userRole: String = ""
 )
