@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ristosmart.model.User
 import com.example.ristosmart.repository.AuthRepository
+import com.example.ristosmart.repository.TokenRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,6 +63,13 @@ class LoginViewModel : ViewModel() {
             val result = authRepository.login(username, password)
             
             result.onSuccess { loginResponse ->
+                // Save tokens
+                TokenRepository.saveTokens(
+                    loginResponse.accessToken, 
+                    loginResponse.refreshToken,
+                    loginResponse.user?.role
+                )
+                
                 _uiState.update { 
                     it.copy(
                         isLoading = false,

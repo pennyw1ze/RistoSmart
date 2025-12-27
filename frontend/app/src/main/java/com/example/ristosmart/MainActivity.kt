@@ -1,22 +1,24 @@
 package com.example.ristosmart
 
-
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.ristosmart.ui.screens.checkin.CheckinScreen
 import com.example.ristosmart.ui.screens.kitchenstaff.KitchenStaffHomeScreen
 import com.example.ristosmart.ui.screens.login.Forgot
 import com.example.ristosmart.ui.screens.login.LogInScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterHomeScreen
 import com.example.ristosmart.ui.theme.RistoSmartTheme
-
 
 @Composable
 fun RistoSmartApp(modifier: Modifier = Modifier) {
@@ -38,29 +40,9 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
                 },
                 onLoginSuccess = { user ->
                     Log.d("Navigation", "User role: ${user.role}")
-                    when (user.role) {
-                        "waiter" -> {
-                            navController.navigate("waiter_home") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        }
-                        "chef" -> {
-                            navController.navigate("kitchen_staff_home") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        }
-                        "manager" -> {
-                            // TODO: Implement Manager Screen
-                            // For now, maybe navigate to a generic placeholder or keep on login
-                             Log.d("Navigation", "Manager screen not implemented yet")
-                        }
-                        "cashier" -> {
-                            // TODO: Implement Cashier Screen
-                            Log.d("Navigation", "Cashier screen not implemented yet")
-                        }
-                        else -> {
-                            Log.e("Navigation", "Unknown role: ${user.role}")
-                        }
+                    // Redirect to checkin screen regardless of role
+                    navController.navigate("checkin") {
+                        popUpTo("login") { inclusive = true }
                     }
                 }
             )
@@ -73,27 +55,33 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
             })
         }
 
-        // 3. Waiter Home Route
+        // 3. Checkin Route
+        composable("checkin") {
+            CheckinScreen()
+        }
+
+        // 4. Waiter Home Route
         composable("waiter_home") {
             WaiterHomeScreen()
         }
 
-        // 4. Kitchen Staff Home Route
+        // 5. Kitchen Staff Home Route
         composable("kitchen_staff_home") {
             KitchenStaffHomeScreen()
         }
     }
 }
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-                RistoSmartApp(modifier = Modifier)
-
+            RistoSmartTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    RistoSmartApp(modifier = Modifier.padding(innerPadding))
+                }
             }
         }
+    }
 }
-
