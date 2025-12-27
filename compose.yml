@@ -10,8 +10,16 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - ristosmart_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
   backend:
-    image: rickythewoof/ristosmart:latest
+    build:
+      context: ./backend/src
+      dockerfile: Dockerfile
     container_name: ristosmart_backend
     environment:
       - DB_HOST=${DB_HOST}
