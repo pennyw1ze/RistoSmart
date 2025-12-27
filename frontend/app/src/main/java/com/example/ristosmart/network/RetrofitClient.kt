@@ -8,8 +8,8 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    // 10.0.2.2 is the localhost alias for Android Emulator
-    private const val BASE_URL = "http://10.0.2.2:3000/"
+    // backend address
+    private const val BASE_URL = "https://borgo28.ddnsfree.com"
 
     private val json = Json {
         ignoreUnknownKeys = true
