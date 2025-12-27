@@ -9,12 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class CheckinUiState(
-    val status: String = "Loading...",
-    val time: String = "--:--",
-    val isLoading: Boolean = false,
-    val selectedNavIndex: Int = 0
-)
 
 class CheckinViewModel : ViewModel() {
 
@@ -56,3 +50,10 @@ class CheckinViewModel : ViewModel() {
         }
     }
 }
+
+data class CheckinUiState(
+    val status: String = "Loading...",
+    val time: String = "--:--",
+    val isLoading: Boolean = false,
+    val selectedNavIndex: Int = 0
+)

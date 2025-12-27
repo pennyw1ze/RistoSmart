@@ -1,14 +1,12 @@
-package com.example.ristosmart.ui.screens.checkin
+package com.example.ristosmart.ui.screens.tables
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -31,11 +29,12 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TopAppBarDefaults
+import com.example.ristosmart.ui.screens.orders.OrdersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CheckinScreen(
-    viewModel: CheckinViewModel = viewModel()
+fun TableScreen(
+    viewModel: OrdersViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -45,7 +44,7 @@ fun CheckinScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("RistoSmart") },
+                title = { Text("Orders") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     titleContentColor = Color.White,
                     containerColor = Color.Blue
@@ -80,34 +79,22 @@ fun CheckinScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
         ) {
 
-            Text(text = "Welcome Chef")
-
-            Card(
-                border = BorderStroke(1.dp, Color.Blue),
-                modifier = Modifier.padding(16.dp)
+            Button(
+                onClick = { viewModel.onBtnPressed(1) },    // TODO: THIS MUST BE CHANGED SINCE WE WILL HAVE A LOOP OF BTNS!
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                border = BorderStroke(1.dp, Color.Blue)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(text = "Current status")
-                    Text(text = uiState.status) // Received from API
+                Text(text = "Table {{ change_me_from_api  }}", color = Color.Black)     //
+            }
 
-                    Button(
-                        onClick = { viewModel.onCheckinPressed() },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
-                        border = BorderStroke(1.dp, Color.Black)
-                    ) {
-                        Text(text = "Check In", color = Color.Black)
-                    }
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = "At home from:")
-                        Text(text = uiState.time) // Received from API
-                    }
-                }
+            Button(
+                onClick = { viewModel.onBtnPressed(2) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                border = BorderStroke(1.dp, Color.Blue)
+            ) {
+                Text(text = "Table {{ change_me_from_api + 1  }}", color = Color.Black)     //
             }
         }
     }
 }
+
