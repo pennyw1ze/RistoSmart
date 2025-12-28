@@ -73,7 +73,14 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
 
         // 4. Waiter Home Route
         composable("waiter_home") {
-            WaiterHomeScreen()
+            WaiterHomeScreen(
+                onNavigateBack = {
+                    // Navigate explicitly to checkin, popping the current stack
+                    navController.navigate("checkin") {
+                        popUpTo("waiter_staff_home") { inclusive = true }
+                    }
+                }
+            )
         }
 
         // 5. Kitchen Staff Home Route
