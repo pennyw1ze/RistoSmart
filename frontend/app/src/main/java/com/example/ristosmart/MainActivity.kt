@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.ristosmart.repository.TokenRepository
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ristosmart.ui.screens.checkin.CheckinScreen
@@ -174,6 +175,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        TokenRepository.init(applicationContext)
         setContent {
             RistoSmartTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
