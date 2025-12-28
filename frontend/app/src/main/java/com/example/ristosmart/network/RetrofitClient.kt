@@ -1,6 +1,7 @@
 package com.example.ristosmart.network
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -9,12 +10,14 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     // backend address
-    private const val BASE_URL = "https://borgo28.ddnsfree.com"
+    private const val BASE_URL = "https://ristosmart-215056753966.europe-west1.run.app/"
 
+    @OptIn(ExperimentalSerializationApi::class)
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
         coerceInputValues = true
+        encodeDefaults = true // <--- IMPORTANT: This ensures default values (like order_type="dine_in") are included in the JSON payload
     }
 
     private val okHttpClient = OkHttpClient.Builder()
