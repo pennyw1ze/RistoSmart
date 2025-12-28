@@ -210,9 +210,23 @@ fun WaiterMenuScreen(
     var showTableDialog by remember { mutableStateOf(false) }
     var tableNumber by remember { mutableStateOf("") }
 
-    // Group items by category
+    // Define the custom order for categories
+    val categoryOrder = listOf("Appetizer", "Main", "Side", "Dessert", "Beverage")
+
+    // Group items by category and sort them according to the defined order
     val groupedItems = remember(uiState.menuItems) {
-        uiState.menuItems.groupBy { it.category }
+        uiState.menuItems
+            .groupBy { it.category }
+            .toSortedMap(compareBy { category ->
+                // Capitalize the category to match the order list (API likely returns lowercase)
+                val capitalizedCategory = category.replaceFirstChar { 
+                    if (it.isLowerCase()) it.titlecase() else it.toString() 
+                }
+                
+                // Find index in the predefined list; if not found, put it at the end
+                val index = categoryOrder.indexOf(capitalizedCategory)
+                if (index != -1) index else Int.MAX_VALUE
+            })
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -322,6 +336,19 @@ fun WaiterMenuScreen(
                             }
                         }
                     }
+                    
+                    item {
+                        OutlinedTextField(
+                            value = uiState.orderNote,
+                            onValueChange = { viewModel.updateOrderNote(it) },
+                            label = { Text("Note for Kitchen") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            minLines = 2,
+                            maxLines = 4
+                        )
+                    }
                 }
 
                 val total = uiState.orderItems.entries.sumOf { (item, qty) -> item.price * qty }
@@ -363,9 +390,10 @@ fun WaiterMenuScreen(
                 Button(
                     onClick = {
                         // TODO: Implement send order logic with tableNumber
-                        println("Sending order for table $tableNumber")
+                        println("Sending order for table $tableNumber with note: ${uiState.orderNote}")
                         showTableDialog = false
                         tableNumber = ""
+                        viewModel.updateOrderNote("") // Clear note after sending
                     },
                     enabled = tableNumber.isNotEmpty()
                 ) {
@@ -420,43 +448,43 @@ fun MenuItemCard(
                 )
             }
             if (menuItem.allergens?.isNotEmpty() == true) {
-                Text(
+                 Text(
                     text = "Allergens: ${menuItem.allergens.joinToString(", ")}",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 4.dp),
-                    maxLines = 1,
+                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
-
+            
             Spacer(modifier = Modifier.height(8.dp))
-
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (quantity > 0) {
-                    IconButton(
-                        onClick = onRemove,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.Remove,
-                            contentDescription = "Remove",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    Text(
-                        text = quantity.toString(),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                } else {
-                    Spacer(modifier = Modifier.width(32.dp)) // Spacer to keep layout consistent
-                }
+                 if (quantity > 0) {
+                     IconButton(
+                         onClick = onRemove,
+                         modifier = Modifier.size(32.dp)
+                     ) {
+                         Icon(
+                             Icons.Filled.Remove, 
+                             contentDescription = "Remove",
+                             tint = MaterialTheme.colorScheme.primary
+                         )
+                     }
+                     
+                     Text(
+                         text = quantity.toString(),
+                         style = MaterialTheme.typography.bodyLarge,
+                         fontWeight = FontWeight.Bold
+                     )
+                 } else {
+                     Spacer(modifier = Modifier.width(32.dp)) // Spacer to keep layout consistent
+                 }
 
                 IconButton(
                     onClick = onAdd,
@@ -465,7 +493,7 @@ fun MenuItemCard(
                         .background(MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.small)
                 ) {
                     Icon(
-                        Icons.Filled.Add,
+                        Icons.Filled.Add, 
                         contentDescription = "Add",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )

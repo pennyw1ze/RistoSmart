@@ -62,11 +62,16 @@ class WaiterMenuViewModel : ViewModel() {
             currentState.copy(orderItems = currentOrder)
         }
     }
+
+    fun updateOrderNote(note: String) {
+        _uiState.update { it.copy(orderNote = note) }
+    }
 }
 
 data class WaiterMenuUiState(
     val menuItems: List<MenuItem> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val orderItems: Map<MenuItem, Int> = emptyMap() // Map of MenuItem to Quantity
+    val orderItems: Map<MenuItem, Int> = emptyMap(), // Map of MenuItem to Quantity
+    val orderNote: String = ""
 )
