@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.ristosmart.repository.TokenRepository
 import com.example.ristosmart.ui.screens.checkin.CheckinScreen
 import com.example.ristosmart.ui.screens.kitchenstaff.KitchenStaffHomeScreen
 import com.example.ristosmart.ui.screens.login.Forgot
@@ -100,6 +101,7 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        TokenRepository.init(applicationContext)
         enableEdgeToEdge()
         setContent {
             RistoSmartTheme {

@@ -67,7 +67,7 @@ class LoginViewModel : ViewModel() {
                 TokenRepository.saveTokens(
                     loginResponse.accessToken, 
                     loginResponse.refreshToken,
-                    loginResponse.user?.role
+                    loginResponse.user
                 )
                 
                 _uiState.update { 
