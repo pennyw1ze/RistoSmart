@@ -3,36 +3,49 @@ package com.example.ristosmart.ui.screens.waiter
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.TableRestaurant
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -47,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -185,13 +199,17 @@ fun WaiterHomeContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaiterMenuScreen(
     modifier: Modifier = Modifier,
     viewModel: WaiterMenuViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    
+    var showOrderSummary by remember { mutableStateOf(false) }
+    var showTableDialog by remember { mutableStateOf(false) }
+    var tableNumber by remember { mutableStateOf("") }
+
     // Group items by category
     val groupedItems = remember(uiState.menuItems) {
         uiState.menuItems.groupBy { it.category }
@@ -208,7 +226,7 @@ fun WaiterMenuScreen(
             )
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(bottom = 80.dp, top = 16.dp, start = 16.dp, end = 16.dp), // Add bottom padding for FAB
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 groupedItems.forEach { (category, items) ->
@@ -224,18 +242,152 @@ fun WaiterMenuScreen(
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
                             items(items) { menuItem ->
-                                MenuItemCard(menuItem = menuItem)
+                                val quantity = uiState.orderItems[menuItem] ?: 0
+                                MenuItemCard(
+                                    menuItem = menuItem,
+                                    quantity = quantity,
+                                    onAdd = { viewModel.addToOrder(menuItem) },
+                                    onRemove = { viewModel.removeFromOrder(menuItem) }
+                                )
                             }
                         }
                     }
                 }
             }
+
+            // Floating Action Button to view order
+            if (uiState.orderItems.isNotEmpty()) {
+                FloatingActionButton(
+                    onClick = { showOrderSummary = true },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Filled.ShoppingCart, contentDescription = "Order")
+                        Text("View Order (${uiState.orderItems.values.sum()})")
+                    }
+                }
+            }
         }
+    }
+
+    if (showOrderSummary) {
+        ModalBottomSheet(
+            onDismissRequest = { showOrderSummary = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Current Order",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                LazyColumn(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(uiState.orderItems.toList()) { (item, quantity) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = item.name, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    text = "€${item.price} x $quantity",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Gray
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = { viewModel.removeFromOrder(item) }) {
+                                    Icon(Icons.Filled.Remove, contentDescription = "Remove")
+                                }
+                                Text(text = quantity.toString(), modifier = Modifier.padding(horizontal = 8.dp))
+                                IconButton(onClick = { viewModel.addToOrder(item) }) {
+                                    Icon(Icons.Filled.Add, contentDescription = "Add")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                val total = uiState.orderItems.entries.sumOf { (item, qty) -> item.price * qty }
+                Text(
+                    text = "Total: €${String.format("%.2f", total)}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.End)
+                )
+
+                Button(
+                    onClick = {
+                        showOrderSummary = false
+                        showTableDialog = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Proceed to Checkout")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+
+    if (showTableDialog) {
+        AlertDialog(
+            onDismissRequest = { showTableDialog = false },
+            title = { Text("Enter Table Number") },
+            text = {
+                OutlinedTextField(
+                    value = tableNumber,
+                    onValueChange = { if (it.all { char -> char.isDigit() }) tableNumber = it },
+                    label = { Text("Table Number") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // TODO: Implement send order logic with tableNumber
+                        println("Sending order for table $tableNumber")
+                        showTableDialog = false
+                        tableNumber = ""
+                    },
+                    enabled = tableNumber.isNotEmpty()
+                ) {
+                    Text("Send Order")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTableDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
 @Composable
-fun MenuItemCard(menuItem: MenuItem) {
+fun MenuItemCard(
+    menuItem: MenuItem,
+    quantity: Int,
+    onAdd: () -> Unit,
+    onRemove: () -> Unit
+) {
     Card(
         modifier = Modifier
             .width(200.dp)
@@ -268,14 +420,56 @@ fun MenuItemCard(menuItem: MenuItem) {
                 )
             }
             if (menuItem.allergens?.isNotEmpty() == true) {
-                 Text(
+                Text(
                     text = "Allergens: ${menuItem.allergens.joinToString(", ")}",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 4.dp),
-                     maxLines = 1,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                if (quantity > 0) {
+                    IconButton(
+                        onClick = onRemove,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Remove,
+                            contentDescription = "Remove",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Text(
+                        text = quantity.toString(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(32.dp)) // Spacer to keep layout consistent
+                }
+
+                IconButton(
+                    onClick = onAdd,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.small)
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = "Add",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
     }
