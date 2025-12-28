@@ -1,6 +1,5 @@
 package com.example.ristosmart
 
-import android.R.attr.type
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
