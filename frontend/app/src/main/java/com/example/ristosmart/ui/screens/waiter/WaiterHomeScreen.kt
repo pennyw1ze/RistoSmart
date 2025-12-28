@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,8 +68,8 @@ fun WaiterHomeScreen(
         }
     }
 
-    val items = listOf("Favorites", "Home", "Profile")
-    val icons = listOf(Icons.Filled.Favorite, Icons.Filled.Home, Icons.Filled.Person)
+    val items = listOf("Menù", "Home", "Tables")
+    val icons = listOf(Icons.Filled.RestaurantMenu, Icons.Filled.Home, Icons.Filled.TableRestaurant)
 
     Scaffold(
         topBar = {

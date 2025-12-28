@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,8 +68,8 @@ fun KitchenStaffHomeScreen(
         }
     }
 
-    val items = listOf("Favorites", "Home", "Profile")
-    val icons = listOf(Icons.Filled.Favorite, Icons.Filled.Home, Icons.Filled.Person)
+    val items = listOf("Tables", "Home", "Inventory")
+    val icons = listOf(Icons.Filled.TableRestaurant, Icons.Filled.Home, Icons.Filled.Inventory2)
 
     Scaffold(
         topBar = {
