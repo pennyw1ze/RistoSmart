@@ -44,6 +44,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -65,6 +67,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ristosmart.model.MenuItem
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,6 +212,19 @@ fun WaiterMenuScreen(
     var showOrderSummary by remember { mutableStateOf(false) }
     var showTableDialog by remember { mutableStateOf(false) }
     var tableNumber by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Observe order status messages
+    LaunchedEffect(uiState.orderStatusMessage) {
+        if (uiState.orderStatusMessage != null) {
+             // In a real app we might show a snackbar here, but as per requirements
+             // we are showing the message color-coded. The message display logic is handled 
+             // in the UI below or we can use a transient state if we want it to disappear.
+             // For now we will auto-clear the message after 3 seconds.
+             delay(3000)
+             viewModel.clearStatusMessage()
+        }
+    }
 
     // Define the custom order for categories
     val categoryOrder = listOf("Appetizer", "Main", "Side", "Dessert", "Beverage")
@@ -229,62 +245,91 @@ fun WaiterMenuScreen(
             })
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        if (uiState.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        } else if (uiState.error != null) {
-            Text(
-                text = uiState.error ?: "Unknown error",
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 80.dp, top = 16.dp, start = 16.dp, end = 16.dp), // Add bottom padding for FAB
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                groupedItems.forEach { (category, items) ->
-                    item {
-                        Text(
-                            text = category.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp)
-                        ) {
-                            items(items) { menuItem ->
-                                val quantity = uiState.orderItems[menuItem] ?: 0
-                                MenuItemCard(
-                                    menuItem = menuItem,
-                                    quantity = quantity,
-                                    onAdd = { viewModel.addToOrder(menuItem) },
-                                    onRemove = { viewModel.removeFromOrder(menuItem) }
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        modifier = modifier
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (uiState.error != null) {
+                Text(
+                    text = uiState.error ?: "Unknown error",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 80.dp, top = 16.dp, start = 16.dp, end = 16.dp), // Add bottom padding for FAB
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    // Status Message Display
+                    if (uiState.orderStatusMessage != null) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (uiState.orderStatusSuccess == true) 
+                                        Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
+                                ),
+                                border = BorderStroke(1.dp, 
+                                    if (uiState.orderStatusSuccess == true) Color.Green else Color.Red
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = uiState.orderStatusMessage!!,
+                                    color = if (uiState.orderStatusSuccess == true) 
+                                        Color(0xFF2E7D32) else Color(0xFFC62828),
+                                    modifier = Modifier.padding(16.dp),
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
-                }
-            }
 
-            // Floating Action Button to view order
-            if (uiState.orderItems.isNotEmpty()) {
-                FloatingActionButton(
-                    onClick = { showOrderSummary = true },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp),
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    groupedItems.forEach { (category, items) ->
+                        item {
+                            Text(
+                                text = category.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            ) {
+                                items(items) { menuItem ->
+                                    val quantity = uiState.orderItems[menuItem] ?: 0
+                                    MenuItemCard(
+                                        menuItem = menuItem,
+                                        quantity = quantity,
+                                        onAdd = { viewModel.addToOrder(menuItem) },
+                                        onRemove = { viewModel.removeFromOrder(menuItem) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Floating Action Button to view order
+                if (uiState.orderItems.isNotEmpty()) {
+                    FloatingActionButton(
+                        onClick = { showOrderSummary = true },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp),
+                        containerColor = MaterialTheme.colorScheme.primary
                     ) {
-                        Icon(Icons.Filled.ShoppingCart, contentDescription = "Order")
-                        Text("View Order (${uiState.orderItems.values.sum()})")
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Filled.ShoppingCart, contentDescription = "Order")
+                            Text("View Order (${uiState.orderItems.values.sum()})")
+                        }
                     }
                 }
             }
@@ -389,11 +434,12 @@ fun WaiterMenuScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // TODO: Implement send order logic with tableNumber
-                        println("Sending order for table $tableNumber with note: ${uiState.orderNote}")
-                        showTableDialog = false
-                        tableNumber = ""
-                        viewModel.updateOrderNote("") // Clear note after sending
+                        val tableNum = tableNumber.toIntOrNull()
+                        if (tableNum != null) {
+                            viewModel.sendOrder(tableNum)
+                            showTableDialog = false
+                            tableNumber = ""
+                        }
                     },
                     enabled = tableNumber.isNotEmpty()
                 ) {
