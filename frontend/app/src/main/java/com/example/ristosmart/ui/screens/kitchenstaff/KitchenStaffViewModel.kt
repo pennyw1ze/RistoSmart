@@ -68,6 +68,14 @@ class KitchenStaffViewModel : ViewModel() {
     fun onNavBarBtnPressed(id: Int) {
         _uiState.update { it.copy(selectedNavIndex = id) }
         println("Navbar item $id pressed. Handle navigation or API call here.")
+        if (id == 0) {
+            // Navigate to Tables screen
+
+        }else if (id == 2) {
+            //Navigate to Inventory
+        }else{
+            // Navigate to Home (meaningless, need to discuss)
+        }
     }
 
     fun onCheckoutPressed() {

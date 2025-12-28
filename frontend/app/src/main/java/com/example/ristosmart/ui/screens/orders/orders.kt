@@ -26,7 +26,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TopAppBarDefaults
 import com.example.ristosmart.ui.screens.orders.OrdersViewModel
@@ -34,12 +36,15 @@ import com.example.ristosmart.ui.screens.orders.OrdersViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrdersScreen(
-    viewModel: OrdersViewModel = viewModel()
+    viewModel: OrdersViewModel = viewModel(),
+    onNavigateToHome: ()-> Unit,
+    onNavigateToTables: (Int) -> Unit,
+    onNavigateToInventory: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val items = listOf("Home", "Favorites", "Profile")
-    val icons = listOf(Icons.Filled.Home, Icons.Filled.Favorite, Icons.Filled.Person)
+    val items = listOf("Tables", "Home", "Inventory")
+    val icons = listOf(Icons.Filled.TableRestaurant, Icons.Filled.Home, Icons.Filled.Inventory2)
 
     Scaffold(
         topBar = {
@@ -61,7 +66,13 @@ fun OrdersScreen(
                         icon = { Icon(icons[index], contentDescription = item) },
                         label = { Text(item) },
                         selected = uiState.selectedNavIndex == index,
-                        onClick = { viewModel.onNavBarBtnPressed(index) },
+                        onClick = { viewModel.onNavBarBtnPressed(index)
+                            when (index) {
+                                //0 -> onNavigateToTables() I navigate to orders only by clicking on a table!
+                                1 -> onNavigateToHome()
+                                2 -> onNavigateToInventory()
+                            }
+                                  },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             unselectedIconColor = Color.Gray
@@ -80,7 +91,9 @@ fun OrdersScreen(
         ) {
 
             Button(
-                onClick = { viewModel.onBtnPressed(1) },    // TODO: THIS MUST BE CHANGED SINCE WE WILL HAVE A LOOP OF BTNS!
+                onClick = { viewModel.onBtnPressed(1)
+                           onNavigateToTables(1)
+                          },    // TODO: THIS MUST BE CHANGED SINCE WE WILL HAVE A LOOP OF BTNS!
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 border = BorderStroke(1.dp, Color.Blue)
             ) {

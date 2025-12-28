@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,7 +45,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun KitchenStaffHomeScreen(
     viewModel: KitchenStaffViewModel = viewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit, //is this used?
+    onNavigateToHome: ()-> Unit,
+    onNavigateToOrders: () -> Unit,
+    onNavigateToInventory: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
@@ -91,7 +92,13 @@ fun KitchenStaffHomeScreen(
                         icon = { Icon(icons[index], contentDescription = item) },
                         label = { Text(item) },
                         selected = uiState.selectedNavIndex == index,
-                        onClick = { viewModel.onNavBarBtnPressed(index) },
+                        onClick = { viewModel.onNavBarBtnPressed(index)
+                            when (index) {
+                                0 -> onNavigateToOrders()
+                                1 -> onNavigateToHome()
+                                2 -> onNavigateToInventory()
+                            }
+                                  },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             unselectedIconColor = Color.Gray

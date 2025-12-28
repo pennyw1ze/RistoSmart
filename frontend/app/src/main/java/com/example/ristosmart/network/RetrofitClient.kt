@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     // backend address
-    private const val BASE_URL = "https://borgo28.ddnsfree.com"
+    private const val BASE_URL = "https://ristosmart-215056753966.europe-west1.run.app/"
 
     private val json = Json {
         ignoreUnknownKeys = true

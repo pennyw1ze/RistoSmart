@@ -1,5 +1,6 @@
 package com.example.ristosmart
 
+import android.R.attr.type
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -10,13 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.ristosmart.ui.screens.checkin.CheckinScreen
 import com.example.ristosmart.ui.screens.kitchenstaff.KitchenStaffHomeScreen
 import com.example.ristosmart.ui.screens.login.Forgot
 import com.example.ristosmart.ui.screens.login.LogInScreen
+import com.example.ristosmart.ui.screens.orders.OrdersScreen
+import com.example.ristosmart.ui.screens.tables.TableScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterHomeScreen
 import com.example.ristosmart.ui.theme.RistoSmartTheme
 
@@ -90,6 +95,75 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
                     // Navigate explicitly to checkin, popping the current stack
                     navController.navigate("checkin") {
                         popUpTo("kitchen_staff_home") { inclusive = true }
+                    }
+                },
+                onNavigateToOrders = {
+                    navController.navigate("orders") {
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate("kitchen_staff_home") {
+                    }
+                },
+                onNavigateToInventory = {
+                    navController.navigate("inventory") {
+                    }
+                }
+            )
+        }
+
+        composable("orders") {
+            OrdersScreen(
+                onNavigateToHome = {
+                    navController.navigate("kitchen_staff_home") {
+                    }
+                },
+                onNavigateToTables = { tableId ->
+                    navController.navigate("tables/$tableId") {
+                    }
+                },
+                onNavigateToInventory = {
+                    navController.navigate("inventory") {
+                    }
+                }
+            )
+        }
+
+        composable("tables/{tableId}",
+            arguments = listOf(navArgument("tableId") { type = NavType.IntType }))
+        {
+            backStackEntry ->
+            // Extract the argument safely
+            val tableId = backStackEntry.arguments?.getInt("tableId") ?: 0
+            TableScreen(
+                onNavigateToOrders = {
+                    navController.navigate("orders") {
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate("kitchen_staff_home") {
+                    }
+                },
+                onNavigateToInventory = {
+                    navController.navigate("inventory") {
+                    }
+                }
+            )
+        }
+
+        composable("inventory") {
+            //I don't have inventory yet
+            OrdersScreen(
+                onNavigateToHome = {
+                    navController.navigate("kitchen_staff_home") {
+                    }
+                },
+                onNavigateToTables = { tableId ->
+                    navController.navigate("tables/$tableId") {
+                    }
+                },
+                onNavigateToInventory = {
+                    navController.navigate("inventory") {
                     }
                 }
             )
