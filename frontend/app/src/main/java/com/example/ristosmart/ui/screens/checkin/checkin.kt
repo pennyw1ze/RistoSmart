@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -85,9 +86,17 @@ fun CheckinScreen(
             
             // Suppressing permission check warning because we check permissions before calling this
             @SuppressLint("MissingPermission")
+            val cancellationTokenSource = CancellationTokenSource()
+            
+            // Create a request that prioritizes high accuracy and forces a fresh update (maxUpdateAgeMillis = 0)
+            val currentLocationRequest = CurrentLocationRequest.Builder()
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setMaxUpdateAgeMillis(0)
+                .build()
+            
             val locationTask = fusedLocationClient.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                CancellationTokenSource().token
+                currentLocationRequest,
+                cancellationTokenSource.token
             )
 
             locationTask.addOnSuccessListener { location: Location? ->
