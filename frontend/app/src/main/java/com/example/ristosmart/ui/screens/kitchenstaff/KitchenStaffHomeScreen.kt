@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,11 +40,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ristosmart.ui.screens.waiter.WaiterTablesViewModel
+import com.example.ristosmart.ui.screens.waiter.WaiterTablesScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KitchenStaffHomeScreen(
     viewModel: KitchenStaffViewModel = viewModel(),
+    tablesViewModel: WaiterTablesViewModel = viewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -65,6 +66,13 @@ fun KitchenStaffHomeScreen(
             isCheckingOut = false
             onNavigateBack()
             viewModel.onCheckoutConsumed()
+        }
+    }
+    
+    // Refresh tables when navigating to the tables screen (index 0)
+    LaunchedEffect(uiState.selectedNavIndex) {
+        if (uiState.selectedNavIndex == 0) {
+            tablesViewModel.fetchOrders()
         }
     }
 
@@ -101,58 +109,91 @@ fun KitchenStaffHomeScreen(
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
+        when (uiState.selectedNavIndex) {
+            0 -> WaiterTablesScreen(
+                modifier = Modifier.padding(innerPadding),
+                viewModel = tablesViewModel
+            )
+            1 -> KitchenStaffHomeContent(
+                uiState = uiState,
+                isCheckingOut = isCheckingOut,
+                buttonScale = buttonScale,
+                onCheckoutPressed = {
+                    isCheckingOut = true
+                    viewModel.onCheckoutPressed()
+                },
+                modifier = Modifier.padding(innerPadding)
+            )
+            2 -> KitchenStaffInventoryScreen(modifier = Modifier.padding(innerPadding))
+        }
+    }
+}
+
+@Composable
+fun KitchenStaffHomeContent(
+    uiState: KitchenStaffUiState,
+    isCheckingOut: Boolean,
+    buttonScale: Float,
+    onCheckoutPressed: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
+    ) {
+
+        Text(text = "Welcome Kitchen Staff")
+
+        Card(
+            border = BorderStroke(1.dp, Color.Blue),
+            modifier = Modifier.padding(16.dp)
         ) {
-
-            Text(text = "Welcome Kitchen Staff")
-
-            Card(
-                border = BorderStroke(1.dp, Color.Blue),
-                modifier = Modifier.padding(16.dp)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Text(text = "Current status")
+                Text(text = uiState.status) 
+
+                Button(
+                    onClick = onCheckoutPressed,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    border = BorderStroke(1.dp, Color.Black),
+                    modifier = Modifier.graphicsLayer(
+                        scaleX = buttonScale,
+                        scaleY = buttonScale
+                    ),
+                    enabled = !isCheckingOut
                 ) {
-                    Text(text = "Current status")
-                    Text(text = uiState.status) 
-
-                    Button(
-                        onClick = { 
-                            isCheckingOut = true
-                            viewModel.onCheckoutPressed() 
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                        border = BorderStroke(1.dp, Color.Black),
-                        modifier = Modifier.graphicsLayer(
-                            scaleX = buttonScale,
-                            scaleY = buttonScale
-                        ),
-                        enabled = !isCheckingOut
-                    ) {
-                         if (isCheckingOut) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color.Black,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(text = "Check Out", color = Color.Black)
-                        }
+                     if (isCheckingOut) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.Black,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(text = "Check Out", color = Color.Black)
                     }
+                }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = "Working since:")
-                        Text(text = uiState.time) 
-                    }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = "Working since:")
+                    Text(text = uiState.time) 
                 }
             }
         }
+    }
+}
+
+@Composable
+fun KitchenStaffInventoryScreen(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Inventory Screen (Placeholder)")
     }
 }
