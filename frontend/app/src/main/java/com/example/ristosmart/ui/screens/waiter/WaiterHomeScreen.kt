@@ -69,11 +69,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ristosmart.model.MenuItem
 import com.example.ristosmart.model.Order
 import kotlinx.coroutines.delay
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaiterHomeScreen(
     viewModel: WaiterViewModel = viewModel(),
+    tablesViewModel: WaiterTablesViewModel = viewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -92,6 +94,13 @@ fun WaiterHomeScreen(
             isCheckingOut = false
             onNavigateBack()
             viewModel.onCheckoutConsumed()
+        }
+    }
+    
+    // Refresh tables when navigating to the tables screen
+    LaunchedEffect(uiState.selectedNavIndex) {
+        if (uiState.selectedNavIndex == 2) {
+            tablesViewModel.fetchOrders()
         }
     }
 
@@ -140,7 +149,10 @@ fun WaiterHomeScreen(
                 },
                 modifier = Modifier.padding(innerPadding)
             )
-            2 -> WaiterTablesScreen(modifier = Modifier.padding(innerPadding))
+            2 -> WaiterTablesScreen(
+                modifier = Modifier.padding(innerPadding),
+                viewModel = tablesViewModel
+            )
         }
     }
 }
@@ -366,7 +378,7 @@ fun WaiterMenuScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(text = item.name, fontWeight = FontWeight.SemiBold)
                                 Text(
-                                    text = "€${item.price} x $quantity",
+                                    text = String.format(Locale.getDefault(), "€%.2f x %d", item.price, quantity),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.Gray
                                 )
@@ -399,7 +411,7 @@ fun WaiterMenuScreen(
 
                 val total = uiState.orderItems.entries.sumOf { (item, qty) -> item.price * qty }
                 Text(
-                    text = "Total: €${String.format("%.2f", total)}",
+                    text = String.format(Locale.getDefault(), "Total: €%.2f", total),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.End)
@@ -652,7 +664,7 @@ fun TableCard(tableNumber: Int, orders: List<Order>) {
                                  style = MaterialTheme.typography.bodyMedium
                              )
                              Text(
-                                 text = "€${String.format("%.2f", item.totalPrice)}",
+                                 text = String.format(Locale.getDefault(), "€%.2f", item.totalPrice),
                                  style = MaterialTheme.typography.bodyMedium
                              )
                         }
@@ -677,7 +689,7 @@ fun TableCard(tableNumber: Int, orders: List<Order>) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "€${String.format("%.2f", totalBill)}",
+                    text = String.format(Locale.getDefault(), "€%.2f", totalBill),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
