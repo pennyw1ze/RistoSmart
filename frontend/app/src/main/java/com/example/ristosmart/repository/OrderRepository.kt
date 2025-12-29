@@ -1,5 +1,6 @@
 package com.example.ristosmart.repository
 
+import com.example.ristosmart.model.Order
 import com.example.ristosmart.model.OrderItemRequest
 import com.example.ristosmart.model.OrderRequest
 import com.example.ristosmart.model.OrderResponse
@@ -39,6 +40,32 @@ class OrderRepository {
             } else {
                 val errorBody = response.errorBody()?.string()
                 Result.failure(Exception("Order creation failed: ${response.code()} $errorBody"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getOrders(): Result<List<Order>> {
+        val token = TokenRepository.accessToken.value
+        if (token.isNullOrBlank()) {
+            return Result.failure(Exception("No access token found"))
+        }
+
+        return try {
+            val authHeader = "Bearer $token"
+            val response = apiService.getOrders(authHeader)
+
+            if (response.isSuccessful && response.body() != null) {
+                val ordersListResponse = response.body()!!
+                if (ordersListResponse.success) {
+                    Result.success(ordersListResponse.data)
+                } else {
+                    Result.failure(Exception("Failed to fetch orders"))
+                }
+            } else {
+                 val errorBody = response.errorBody()?.string()
+                Result.failure(Exception("Fetch orders failed: ${response.code()} $errorBody"))
             }
         } catch (e: Exception) {
             Result.failure(e)

@@ -67,6 +67,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ristosmart.model.MenuItem
+import com.example.ristosmart.model.Order
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -551,12 +552,147 @@ fun MenuItemCard(
 
 
 @Composable
-fun WaiterTablesScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Tables Screen")
+fun WaiterTablesScreen(
+    modifier: Modifier = Modifier,
+    viewModel: WaiterTablesViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Group orders by table number
+    val groupedOrders = remember(uiState.orders) {
+        uiState.orders.groupBy { it.tableNumber ?: 0 }.toSortedMap()
     }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        if (uiState.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        } else if (uiState.error != null) {
+            Text(
+                text = uiState.error ?: "Unknown error",
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                groupedOrders.forEach { (tableNumber, orders) ->
+                    item {
+                        TableCard(tableNumber = tableNumber, orders = orders)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TableCard(tableNumber: Int, orders: List<Order>) {
+    val totalBill = orders.sumOf { it.finalAmount }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header with Table Number
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Table $tableNumber",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                // You could add table status indicators here if available (e.g. occupied, paying)
+            }
+
+            Divider()
+
+            // List of Orders for this table
+            orders.forEach { order ->
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                         modifier = Modifier.fillMaxWidth(),
+                         horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Order #${order.orderNumber}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = order.status,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = when(order.status) {
+                                "completed" -> Color(0xFF2E7D32)
+                                "cancelled" -> Color.Red
+                                else -> Color(0xFFF57C00) // Orange for pending/preparing
+                            }
+                        )
+                    }
+
+                    // Order Items
+                    order.items.forEach { item ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                             Text(
+                                 text = "${item.quantity}x ${item.menuItemName}",
+                                 style = MaterialTheme.typography.bodyMedium
+                             )
+                             Text(
+                                 text = "€${String.format("%.2f", item.totalPrice)}",
+                                 style = MaterialTheme.typography.bodyMedium
+                             )
+                        }
+                    }
+                    if (order != orders.last()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+
+            Divider()
+
+            // Total Bill Footer
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Total Bill",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "€${String.format("%.2f", totalBill)}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun Divider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(Color.LightGray)
+    )
 }
