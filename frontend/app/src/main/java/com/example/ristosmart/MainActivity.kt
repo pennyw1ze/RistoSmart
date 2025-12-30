@@ -17,12 +17,14 @@ import com.example.ristosmart.repository.TokenRepository
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ristosmart.ui.screens.checkin.CheckinScreen
+import com.example.ristosmart.ui.screens.inventory.InventoryScreen
 import com.example.ristosmart.ui.screens.kitchenstaff.KitchenStaffHomeScreen
 import com.example.ristosmart.ui.screens.login.Forgot
 import com.example.ristosmart.ui.screens.login.LogInScreen
 import com.example.ristosmart.ui.screens.orders.OrdersScreen
 import com.example.ristosmart.ui.screens.tables.TableScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterHomeScreen
+import com.example.ristosmart.ui.screens.camera.CameraScreen
 import com.example.ristosmart.ui.theme.RistoSmartTheme
 
 @Composable
@@ -153,13 +155,34 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
 
         composable("inventory") {
             //I don't have inventory yet
-            OrdersScreen(
+            InventoryScreen(
                 onNavigateToHome = {
                     navController.navigate("kitchen_staff_home") {
                     }
                 },
-                onNavigateToTables = { tableId ->
-                    navController.navigate("tables/$tableId") {
+                onNavigateToOrders = {
+                    navController.navigate("orders") {
+                    }
+                },
+                onNavigateToInventory = {
+                    navController.navigate("inventory") {
+                    }
+                },
+                onNavigateToCamera = {
+                    navController.navigate("camera") {
+                    }
+                }
+            )
+        }
+
+        composable("camera"){
+            CameraScreen(
+                onNavigateToHome = {
+                    navController.navigate("kitchen_staff_home") {
+                    }
+                },
+                onNavigateToOrders = {
+                    navController.navigate("orders") {
                     }
                 },
                 onNavigateToInventory = {

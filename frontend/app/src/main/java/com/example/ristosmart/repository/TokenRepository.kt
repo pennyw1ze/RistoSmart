@@ -75,4 +75,8 @@ object TokenRepository {
             null
         }
     }
+
+    fun getAccessToken(): String? {
+        return _accessToken.value
+    }
 }
