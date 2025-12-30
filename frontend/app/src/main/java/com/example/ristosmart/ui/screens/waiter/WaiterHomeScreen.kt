@@ -151,7 +151,8 @@ fun WaiterHomeScreen(
             )
             2 -> WaiterTablesScreen(
                 modifier = Modifier.padding(innerPadding),
-                viewModel = tablesViewModel
+                viewModel = tablesViewModel,
+                userRole = "waiter" // Explicitly pass "waiter" role here
             )
         }
     }
@@ -566,13 +567,44 @@ fun MenuItemCard(
 @Composable
 fun WaiterTablesScreen(
     modifier: Modifier = Modifier,
-    viewModel: WaiterTablesViewModel = viewModel()
+    viewModel: WaiterTablesViewModel = viewModel(),
+    userRole: String? // Pass role here to control visibility
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     // Group orders by table number
-    val groupedOrders = remember(uiState.orders) {
-        uiState.orders.groupBy { it.tableNumber ?: 0 }.toSortedMap()
+    val groupedOrders = remember(uiState.orders, uiState.filterStatus, uiState.sortByRecent) {
+        var filtered = uiState.orders
+        if (uiState.filterStatus != null) {
+            filtered = filtered.filter { it.status.equals(uiState.filterStatus, ignoreCase = true) }
+        }
+        
+        // Sorting Logic Fix:
+        // Use sortedWith to define a custom comparator that handles nulls and order
+        if (uiState.sortByRecent) {
+             // Sort by createdAt descending (newest first). Handle nulls last.
+             filtered = filtered.sortedByDescending { it.createdAt }
+        } else {
+             // Sort by tableNumber ascending. Handle nulls last.
+             filtered = filtered.sortedBy { it.tableNumber ?: Int.MAX_VALUE }
+        }
+
+        // After sorting the flat list, we group it. 
+        // Note: 'groupBy' preserves the order of keys as they first appear in the source list.
+        // So if 'filtered' is sorted by date, the groups will appear in that order of first appearance.
+        // HOWEVER, 'toSortedMap' will RE-SORT the keys (table numbers).
+        // If we want to keep the "Recent" sort order for the GROUPS, we should NOT use 'toSortedMap' blindly
+        // or we need a map that respects insertion order (LinkedHashMap) which 'groupBy' returns by default.
+        
+        if (uiState.sortByRecent) {
+            // If sorting by recent, we probably want to see the tables with the most recent orders first.
+            // groupBy returns a LinkedHashMap which preserves insertion order.
+            // Since we sorted 'filtered' by recent, the table with the most recent order will be first key.
+            filtered.groupBy { it.tableNumber ?: 0 } 
+        } else {
+            // If sorting by table number, we want keys 1, 2, 3...
+            filtered.groupBy { it.tableNumber ?: 0 }.toSortedMap()
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -585,13 +617,71 @@ fun WaiterTablesScreen(
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                groupedOrders.forEach { (tableNumber, orders) ->
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Filter and Sort Controls
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     item {
-                        TableCard(tableNumber = tableNumber, orders = orders)
+                        Button(
+                            onClick = { 
+                                val newSort = !uiState.sortByRecent
+                                viewModel.filterOrders(uiState.filterStatus, newSort) 
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (uiState.sortByRecent) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(if (uiState.sortByRecent) "Sort: Recent" else "Sort: Table")
+                        }
+                    }
+                    
+                    item {
+                        val isConfirmed = uiState.filterStatus == "confirmed"
+                        Button(
+                            onClick = { 
+                                viewModel.filterOrders(if (isConfirmed) null else "confirmed", uiState.sortByRecent)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isConfirmed) MaterialTheme.colorScheme.secondary else Color.Gray
+                            )
+                        ) {
+                            Text("Confirmed")
+                        }
+                    }
+                    
+                    item {
+                        val isReady = uiState.filterStatus == "ready"
+                         Button(
+                            onClick = { 
+                                viewModel.filterOrders(if (isReady) null else "ready", uiState.sortByRecent)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isReady) MaterialTheme.colorScheme.secondary else Color.Gray
+                            )
+                        ) {
+                            Text("Ready")
+                        }
+                    }
+                }
+
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    groupedOrders.forEach { (tableNumber, orders) ->
+                        item {
+                            TableCard(
+                                tableNumber = tableNumber, 
+                                orders = orders,
+                                userRole = userRole,
+                                onUpdateStatus = { orderId, newStatus ->
+                                    viewModel.updateOrderStatus(orderId, newStatus)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -600,7 +690,12 @@ fun WaiterTablesScreen(
 }
 
 @Composable
-fun TableCard(tableNumber: Int, orders: List<Order>) {
+fun TableCard(
+    tableNumber: Int, 
+    orders: List<Order>,
+    userRole: String?,
+    onUpdateStatus: (String, String) -> Unit = { _, _ -> }
+) {
     val totalBill = orders.sumOf { it.finalAmount }
     
     Card(
@@ -635,22 +730,67 @@ fun TableCard(tableNumber: Int, orders: List<Order>) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(
                          modifier = Modifier.fillMaxWidth(),
-                         horizontalArrangement = Arrangement.SpaceBetween
+                         horizontalArrangement = Arrangement.SpaceBetween,
+                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Order #${order.orderNumber}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = order.status,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = when(order.status) {
-                                "completed" -> Color(0xFF2E7D32)
-                                "cancelled" -> Color.Red
-                                else -> Color(0xFFF57C00) // Orange for pending/preparing
+                        Column {
+                            Text(
+                                text = "Order #${order.orderNumber}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                             if (!order.specialInstructions.isNullOrBlank()) {
+                                Text(
+                                    text = "Note: ${order.specialInstructions}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Red,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                )
                             }
-                        )
+                        }
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = order.status,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = when(order.status) {
+                                    "completed" -> Color(0xFF2E7D32)
+                                    "cancelled" -> Color.Red
+                                    "ready" -> Color.Green
+                                    else -> Color(0xFFF57C00) // Orange for pending/preparing
+                                },
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            
+                            // Role-based logic for buttons
+                            
+                            // 1. Waiter Action: Ready -> Delivered
+                            // Only waiter should see this button
+                            if (userRole == "waiter" && order.status.equals("ready", ignoreCase = true)) {
+                                Button(
+                                    onClick = { onUpdateStatus(order.id, "delivered") },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                    modifier = Modifier.height(32.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                                ) {
+                                    Text("Deliver", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                            
+                            // 2. Kitchen Staff (Chef) Action: Confirmed -> Ready
+                            // Only chef (or manager/kitchen staff) should see this button
+                            // Assuming "chef" is the role name for kitchen staff based on previous context
+                            if (userRole == "chef" && order.status.equals("confirmed", ignoreCase = true)) {
+                                Button(
+                                    onClick = { onUpdateStatus(order.id, "ready") },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)), // Green for ready
+                                    modifier = Modifier.height(32.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                                ) {
+                                    Text("Ready", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
                     }
 
                     // Order Items

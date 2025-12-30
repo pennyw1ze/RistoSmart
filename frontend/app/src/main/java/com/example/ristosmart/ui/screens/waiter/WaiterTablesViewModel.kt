@@ -40,10 +40,30 @@ class WaiterTablesViewModel : ViewModel() {
             }
         }
     }
+
+    fun updateOrderStatus(orderId: String, newStatus: String) {
+        viewModelScope.launch {
+            val result = repository.updateOrderStatus(orderId, newStatus)
+            result.onSuccess {
+                // Refresh orders after update
+                fetchOrders()
+            }.onFailure { e ->
+                _uiState.update { 
+                    it.copy(error = "Failed to update status: ${e.message}")
+                }
+            }
+        }
+    }
+
+    fun filterOrders(status: String?, sortByRecent: Boolean) {
+         _uiState.update { it.copy(filterStatus = status, sortByRecent = sortByRecent) }
+    }
 }
 
 data class WaiterTablesUiState(
     val orders: List<Order> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val filterStatus: String? = null,
+    val sortByRecent: Boolean = false
 )

@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ristosmart.repository.TokenRepository
 import com.example.ristosmart.ui.screens.waiter.WaiterTablesViewModel
 import com.example.ristosmart.ui.screens.waiter.WaiterTablesScreen
 
@@ -78,6 +79,7 @@ fun KitchenStaffHomeScreen(
 
     val items = listOf("Tables", "Home", "Inventory")
     val icons = listOf(Icons.Filled.TableRestaurant, Icons.Filled.Home, Icons.Filled.Inventory2)
+    val role = TokenRepository.userRole.collectAsState().value
 
     Scaffold(
         topBar = {
@@ -112,7 +114,8 @@ fun KitchenStaffHomeScreen(
         when (uiState.selectedNavIndex) {
             0 -> WaiterTablesScreen(
                 modifier = Modifier.padding(innerPadding),
-                viewModel = tablesViewModel
+                viewModel = tablesViewModel,
+                userRole = role // Pass the role
             )
             1 -> KitchenStaffHomeContent(
                 uiState = uiState,
@@ -168,24 +171,24 @@ fun KitchenStaffHomeContent(
                     enabled = !isCheckingOut
                 ) {
                      if (isCheckingOut) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color.Black,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(text = "Check Out", color = Color.Black)
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.Black,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(text = "Check Out", color = Color.Black)
+                        }
                     }
-                }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(text = "Working since:")
-                    Text(text = uiState.time) 
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = "Working since:")
+                        Text(text = uiState.time) 
+                    }
                 }
             }
         }
     }
-}
 
 @Composable
 fun KitchenStaffInventoryScreen(modifier: Modifier = Modifier) {

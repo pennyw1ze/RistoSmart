@@ -4,6 +4,7 @@ import com.example.ristosmart.model.Order
 import com.example.ristosmart.model.OrderItemRequest
 import com.example.ristosmart.model.OrderRequest
 import com.example.ristosmart.model.OrderResponse
+import com.example.ristosmart.model.UpdateOrderStatusRequest
 import com.example.ristosmart.network.RetrofitClient
 
 class OrderRepository {
@@ -35,7 +36,7 @@ class OrderRepository {
                 if (orderResponse.success) {
                     Result.success(orderResponse)
                 } else {
-                    Result.failure(Exception(orderResponse.message))
+                    Result.failure(Exception(orderResponse.message ?: "Unknown error"))
                 }
             } else {
                 val errorBody = response.errorBody()?.string()
@@ -66,6 +67,33 @@ class OrderRepository {
             } else {
                  val errorBody = response.errorBody()?.string()
                 Result.failure(Exception("Fetch orders failed: ${response.code()} $errorBody"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun updateOrderStatus(orderId: String, newStatus: String): Result<OrderResponse> {
+        val token = TokenRepository.accessToken.value
+        if (token.isNullOrBlank()) {
+            return Result.failure(Exception("No access token found"))
+        }
+
+        return try {
+            val authHeader = "Bearer $token"
+            val request = UpdateOrderStatusRequest(status = newStatus)
+            val response = apiService.updateOrderStatus(authHeader, orderId, request)
+
+            if (response.isSuccessful && response.body() != null) {
+                val orderResponse = response.body()!!
+                if (orderResponse.success) {
+                    Result.success(orderResponse)
+                } else {
+                    Result.failure(Exception(orderResponse.message ?: "Failed to update status"))
+                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Result.failure(Exception("Update status failed: ${response.code()} $errorBody"))
             }
         } catch (e: Exception) {
             Result.failure(e)
