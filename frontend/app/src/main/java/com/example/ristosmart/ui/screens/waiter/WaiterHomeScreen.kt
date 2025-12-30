@@ -112,8 +112,8 @@ fun WaiterHomeScreen(
             TopAppBar(
                 title = { Text("RistoSmart") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = Color.White,
-                    containerColor = Color.Blue
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
@@ -130,7 +130,7 @@ fun WaiterHomeScreen(
                         onClick = { viewModel.onNavBarBtnPressed(index) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = Color.Gray
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
@@ -175,7 +175,7 @@ fun WaiterHomeContent(
         Text(text = "Welcome, waiter")
 
         Card(
-            border = BorderStroke(1.dp, Color.Blue),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             modifier = Modifier.padding(16.dp)
         ) {
             Column(
@@ -188,8 +188,8 @@ fun WaiterHomeContent(
 
                 Button(
                     onClick = onCheckoutPressed,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                    border = BorderStroke(1.dp, Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     modifier = Modifier.graphicsLayer(
                         scaleX = buttonScale,
                         scaleY = buttonScale
@@ -199,11 +199,11 @@ fun WaiterHomeContent(
                     if (isCheckingOut) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onError,
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text(text = "Check Out", color = Color.Black)
+                        Text(text = "Check Out", color = MaterialTheme.colorScheme.onError)
                     }
                 }
 
@@ -280,20 +280,21 @@ fun WaiterMenuScreen(
                     // Status Message Display
                     if (uiState.orderStatusMessage != null) {
                         item {
+                            val isSuccess = uiState.orderStatusSuccess == true
                             Card(
                                 colors = CardDefaults.cardColors(
-                                    containerColor = if (uiState.orderStatusSuccess == true) 
-                                        Color(0xFFE8F5E9) else Color(0xFFFFEBEE)
+                                    containerColor = if (isSuccess) 
+                                        MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
                                 ),
                                 border = BorderStroke(1.dp, 
-                                    if (uiState.orderStatusSuccess == true) Color.Green else Color.Red
+                                    if (isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                                 ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = uiState.orderStatusMessage!!,
-                                    color = if (uiState.orderStatusSuccess == true) 
-                                        Color(0xFF2E7D32) else Color(0xFFC62828),
+                                    color = if (isSuccess) 
+                                        MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
                                     modifier = Modifier.padding(16.dp),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -381,7 +382,7 @@ fun WaiterMenuScreen(
                                 Text(
                                     text = String.format(Locale.getDefault(), "€%.2f x %d", item.price, quantity),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -481,7 +482,7 @@ fun MenuItemCard(
             .width(200.dp)
             .padding(bottom = 8.dp), // Add padding for shadow
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -511,7 +512,7 @@ fun MenuItemCard(
                  Text(
                     text = "Allergens: ${menuItem.allergens.joinToString(", ")}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
                      maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -644,10 +645,10 @@ fun WaiterTablesScreen(
                                 viewModel.filterOrders(if (isConfirmed) null else "confirmed", uiState.sortByRecent)
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isConfirmed) MaterialTheme.colorScheme.secondary else Color.Gray
+                                containerColor = if (isConfirmed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant
                             )
                         ) {
-                            Text("Confirmed")
+                            Text("Confirmed", color = if (isConfirmed) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     
@@ -658,10 +659,10 @@ fun WaiterTablesScreen(
                                 viewModel.filterOrders(if (isReady) null else "ready", uiState.sortByRecent)
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isReady) MaterialTheme.colorScheme.secondary else Color.Gray
+                                containerColor = if (isReady) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant
                             )
                         ) {
-                            Text("Ready")
+                            Text("Ready", color = if (isReady) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -743,22 +744,23 @@ fun TableCard(
                                 Text(
                                     text = "Note: ${order.specialInstructions}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Red,
+                                    color = MaterialTheme.colorScheme.error,
                                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                                 )
                             }
                         }
                         
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            val statusColor = when(order.status) {
+                                "completed" -> Color(0xFF2E7D32) // Keep specific success color or use generic
+                                "cancelled" -> MaterialTheme.colorScheme.error
+                                "ready" -> Color.Green // Or primary
+                                else -> Color(0xFFF57C00) // Orange
+                            }
                             Text(
                                 text = order.status,
                                 style = MaterialTheme.typography.labelMedium,
-                                color = when(order.status) {
-                                    "completed" -> Color(0xFF2E7D32)
-                                    "cancelled" -> Color.Red
-                                    "ready" -> Color.Green
-                                    else -> Color(0xFFF57C00) // Orange for pending/preparing
-                                },
+                                color = statusColor,
                                 modifier = Modifier.padding(end = 8.dp)
                             )
                             
@@ -845,6 +847,6 @@ fun Divider() {
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(Color.LightGray)
+            .background(MaterialTheme.colorScheme.outlineVariant)
     )
 }

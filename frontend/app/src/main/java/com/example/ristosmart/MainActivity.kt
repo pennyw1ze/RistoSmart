@@ -1,5 +1,10 @@
 package com.example.ristosmart
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -20,6 +25,7 @@ import com.example.ristosmart.ui.screens.login.Forgot
 import com.example.ristosmart.ui.screens.login.LogInScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterHomeScreen
 import com.example.ristosmart.ui.theme.RistoSmartTheme
+import com.example.ristosmart.ui.theme.ThemeManager
 
 @Composable
 fun RistoSmartApp(modifier: Modifier = Modifier) {
@@ -98,17 +104,49 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
     }
 }
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), SensorEventListener {
+    private lateinit var sensorManager: SensorManager
+    private var lightSensor: Sensor? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         TokenRepository.init(applicationContext)
         enableEdgeToEdge()
+
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+
         setContent {
-            RistoSmartTheme {
+            val isDarkTheme = ThemeManager.isDarkTheme.value
+            RistoSmartTheme(darkTheme = isDarkTheme) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     RistoSmartApp(modifier = Modifier.padding(innerPadding))
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        lightSensor?.also { light ->
+            sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this)
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        // Not needed for this implementation
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_LIGHT) {
+            val lightValue = event.values[0]
+            // Set a threshold for low light, e.g., < 50 lux
+            ThemeManager.setDarkTheme(lightValue < 50f)
         }
     }
 }

@@ -145,8 +145,8 @@ fun CheckinScreen(
             TopAppBar(
                 title = { Text("RistoSmart") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = Color.White,
-                    containerColor = Color.Blue
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -183,7 +183,7 @@ fun CheckinScreen(
             }
 
             Card(
-                border = BorderStroke(1.dp, Color.Blue),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.padding(16.dp)
             ) {
                 Column(
@@ -205,8 +205,7 @@ fun CheckinScreen(
                                 )
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green),
-                        border = BorderStroke(1.dp, Color.Black),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.graphicsLayer(
                             scaleX = buttonScale,
                             scaleY = buttonScale
@@ -216,11 +215,11 @@ fun CheckinScreen(
                         if (isCheckingIn) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = Color.Black,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(text = "Check In", color = Color.Black)
+                            Text(text = "Check In")
                         }
                     }
 

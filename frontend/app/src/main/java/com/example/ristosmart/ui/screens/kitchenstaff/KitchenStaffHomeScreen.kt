@@ -86,8 +86,8 @@ fun KitchenStaffHomeScreen(
             TopAppBar(
                 title = { Text("RistoSmart") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    titleContentColor = Color.White,
-                    containerColor = Color.Blue
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
@@ -104,7 +104,7 @@ fun KitchenStaffHomeScreen(
                         onClick = { viewModel.onNavBarBtnPressed(index) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = Color.Gray
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                 }
@@ -149,7 +149,7 @@ fun KitchenStaffHomeContent(
         Text(text = "Welcome Kitchen Staff")
 
         Card(
-            border = BorderStroke(1.dp, Color.Blue),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             modifier = Modifier.padding(16.dp)
         ) {
             Column(
@@ -162,8 +162,8 @@ fun KitchenStaffHomeContent(
 
                 Button(
                     onClick = onCheckoutPressed,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                    border = BorderStroke(1.dp, Color.Black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     modifier = Modifier.graphicsLayer(
                         scaleX = buttonScale,
                         scaleY = buttonScale
@@ -173,11 +173,11 @@ fun KitchenStaffHomeContent(
                      if (isCheckingOut) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = Color.Black,
+                                color = MaterialTheme.colorScheme.onError,
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(text = "Check Out", color = Color.Black)
+                            Text(text = "Check Out", color = MaterialTheme.colorScheme.onError)
                         }
                     }
 
