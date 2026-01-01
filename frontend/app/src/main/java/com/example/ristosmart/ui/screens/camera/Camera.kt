@@ -109,7 +109,7 @@ fun CameraScreen(
                     }
                 )
         }
-        if(uiState.showScanBtn) {
+        if(uiState.showScanBtn && !uiState.isScanning) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -182,7 +182,7 @@ fun CameraScreen(
                             androidx.compose.foundation.layout.Row(
                                 horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
                             ) {
-                                androidx.compose.material3.OutlinedButton(onClick = { viewModel.onScanClicked() }) {
+                                androidx.compose.material3.OutlinedButton(onClick = { viewModel.onRetryClicked() }) {
                                     Text("Retry")
                                 }
                                 androidx.compose.material3.Button(onClick = { }) {

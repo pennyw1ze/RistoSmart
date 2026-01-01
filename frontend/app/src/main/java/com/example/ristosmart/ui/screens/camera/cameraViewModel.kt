@@ -25,15 +25,21 @@ class CameraViewModel: ViewModel() {
     }
 
     fun onScanClicked() {
-        _uiState.update { it.copy(isScanning = true) }
+        _uiState.update { it.copy(isScanning = true, showScanBtn = false, showResults = false) }
+    }
+
+    fun onRetryClicked() {
+        _uiState.update { it.copy(isScanning = true, showScanBtn = false, showResults = false) }
     }
 
     fun onBarcodeFound(barcode: String) {
         println("ML KIT FOUND BARCODE: $barcode")
-        _uiState.update { it.copy(isScanning = false) }
-        _uiState.update { it.copy(showScanBtn = false) }
-        _uiState.update { it.copy(showResults = true) }
-        _uiState.update { it.copy(scannedCode = barcode) }
+        _uiState.update { it.copy(
+            isScanning = false,
+            showScanBtn = false, // Keep scan button hidden
+            showResults = true,
+            scannedCode = barcode
+        ) }
 
 
         // TODO: decide what do to!
@@ -54,4 +60,3 @@ data class CameraUiState(
     val showResults: Boolean = false,
     val scannedCode: String = ""
 )
-
