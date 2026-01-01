@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ristosmart.repository.TokenRepository
+import com.example.ristosmart.ui.screens.waiter.WaiterTablesScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterTablesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
