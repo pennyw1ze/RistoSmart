@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ristosmart.ui.scanner.BarcodeScannerScreen
@@ -46,7 +47,7 @@ fun CameraScreen(
     onNavigateToOrders: () -> Unit,
     onNavigateToInventory: () -> Unit
 ) {
-
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
     val items = listOf("Tables", "Home", "Inventory")
@@ -133,6 +134,27 @@ fun CameraScreen(
             // A simple way is to use a key in remember.
             var isAnimFinished by androidx.compose.runtime.remember(uiState.showResults) {
                 androidx.compose.runtime.mutableStateOf(false)
+            }
+            
+            // Play sound when results are shown
+            LaunchedEffect(uiState.showResults) {
+                 if (uiState.showResults) {
+                     // Try to play custom sound 'scan_success' from res/raw
+                     val soundId = context.resources.getIdentifier("walletsound", "raw", context.packageName)
+                     if (soundId != 0) {
+                        try {
+                            val mediaPlayer = android.media.MediaPlayer.create(context, soundId)
+                            mediaPlayer.start()
+                            mediaPlayer.setOnCompletionListener { it.release() }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                     } else {
+                         // Fallback to default system beep if custom sound is missing
+                         val toneGen = android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 100)
+                         toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 150)
+                     }
+                 }
             }
 
             Box(
