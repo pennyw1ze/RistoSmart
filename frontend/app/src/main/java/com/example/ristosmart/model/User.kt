@@ -18,6 +18,8 @@ data class User(
     val isActive: Boolean,
     @SerialName("created_at")
     val createdAt: String? = null,
+    @SerialName("updated_at")
+    val updatedAt: String? = null,
     @SerialName("last_login")
     val lastLogin: String? = null
 )
