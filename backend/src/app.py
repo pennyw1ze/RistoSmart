@@ -193,6 +193,7 @@ def create_app(config_name='default'):
                 'inventory': {
                     'GET /api/inventory/': 'Get all products',
                     'GET /api/inventory/{id}': 'Get product by ID',
+                    'GET /api/inventory/ean/{ean}': 'Search products by EAN',
                     'POST /api/inventory/': 'Create new product',
                     'PUT /api/inventory/{id}': 'Update product',
                     'DELETE /api/inventory/{id}': 'Delete product'
@@ -246,6 +247,15 @@ def create_app(config_name='default'):
             'message': 'Endpoint not found',
             'error': 'not_found'
         }), 404
+    
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return jsonify({
+            'success': False,
+            'message': 'Method not allowed for this endpoint',
+            'error': 'method_not_allowed',
+            'allowed_methods': error.description if hasattr(error, 'description') else None
+        }), 405
     
     @app.errorhandler(500)
     def internal_error(error):

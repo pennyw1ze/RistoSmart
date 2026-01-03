@@ -9,6 +9,7 @@ from flasgger import swag_from
 
 from docs.inventory_docs import (
     get_all_products_spec,
+    get_product_ean_spec,
     get_product_spec,
     create_product_spec,
     update_product_spec,
@@ -23,6 +24,7 @@ class ProductSchema(Schema):
     name = fields.Str(required=True, validate=lambda x: 1 <= len(x) <= 100)
     description = fields.Str(allow_none=True)
     price = fields.Float(required=True, validate=lambda x: x >= 0)
+    quantity = fields.Int(required=True, validate=lambda x: x >= 0)
     category = fields.Str(allow_none=True, validate=lambda x: len(x) <= 50)
     image_url = fields.Str(allow_none=True, validate=lambda x: len(x) <= 255)
     created_at = fields.DateTime(dump_only=True)
@@ -38,6 +40,26 @@ def get_products():
     """Get all products"""
     try:
         products = Product.query.all()
+        return jsonify({
+            'success': True,
+            'data': products_schema.dump(products),
+            'count': len(products)
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': 'Error fetching products',
+            'error': str(e)
+        }), 500
+
+
+@inventory_bp.route('/ean/<ean>', methods=['GET'])
+@jwt_required()
+@swag_from(get_product_ean_spec)
+def search_products(ean):
+    """Search products by EAN"""
+    try:
+        products = Product.query.filter_by(ean=ean).all()
         return jsonify({
             'success': True,
             'data': products_schema.dump(products),
@@ -113,6 +135,7 @@ def add_product():
             name=data['name'],
             description=data.get('description'),
             price=data['price'],
+            quantity=data['quantity'],
             category=data.get('category'),
             image_url=data.get('image_url')
         )
