@@ -25,11 +25,13 @@ class LoginViewModel : ViewModel() {
         // Load saved preferences on initialization
         val savedRememberMe = TokenRepository.getRememberMe()
         val savedUsername = TokenRepository.getSavedUsername() ?: ""
+        val savedPassword = TokenRepository.getSavedPassword() ?: ""
         
         _uiState.update { 
             it.copy(
                 rememberMe = savedRememberMe,
-                email = savedUsername
+                email = savedUsername,
+                password = savedPassword
             ) 
         }
     }
@@ -84,8 +86,8 @@ class LoginViewModel : ViewModel() {
                     loginResponse.user
                 )
 
-                // Save or clear Remember Me preferences
-                TokenRepository.saveRememberMe(rememberMe, username)
+                // Save or clear Remember Me preferences, now including password
+                TokenRepository.saveRememberMe(rememberMe, username, password)
                 
                 _uiState.update { 
                     it.copy(

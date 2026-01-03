@@ -16,6 +16,7 @@ object TokenRepository {
     private const val KEY_USER_ROLE = "user_role"
     private const val KEY_REMEMBER_ME = "remember_me"
     private const val KEY_SAVED_USERNAME = "saved_username"
+    private const val KEY_SAVED_PASSWORD = "saved_password"
 
     private lateinit var sharedPreferences: SharedPreferences
 
@@ -69,13 +70,17 @@ object TokenRepository {
         }
     }
 
-    fun saveRememberMe(rememberMe: Boolean, username: String) {
+    fun saveRememberMe(rememberMe: Boolean, username: String, password: String? = null) {
         sharedPreferences.edit().apply {
             putBoolean(KEY_REMEMBER_ME, rememberMe)
             if (rememberMe) {
                 putString(KEY_SAVED_USERNAME, username)
+                if (password != null) {
+                    putString(KEY_SAVED_PASSWORD, password)
+                }
             } else {
                 remove(KEY_SAVED_USERNAME)
+                remove(KEY_SAVED_PASSWORD)
             }
             apply()
         }
@@ -87,6 +92,10 @@ object TokenRepository {
 
     fun getSavedUsername(): String? {
         return sharedPreferences.getString(KEY_SAVED_USERNAME, "")
+    }
+    
+    fun getSavedPassword(): String? {
+        return sharedPreferences.getString(KEY_SAVED_PASSWORD, "")
     }
 
     fun getUser(): User? {
