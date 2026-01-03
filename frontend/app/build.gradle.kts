@@ -18,6 +18,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        ndk {
+            abiFilters.add("arm64-v8a")
+            abiFilters.add("x86_64")
+            abiFilters.add("x86")
+            abiFilters.add("armeabi-v7a")
+        }
     }
 
     buildTypes {
@@ -38,6 +45,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 }
 
@@ -69,11 +82,11 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
-    // Google ML Kit Barcode Scanning
-    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+    // Google ML Kit Barcode Scanning - Updated to latest stable
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
 
-    // CameraX dependencies (needed to feed images to ML Kit)
-    val cameraxVersion = "1.3.1"
+    // CameraX dependencies - Updated to newer stable
+    val cameraxVersion = "1.4.1" 
     implementation("androidx.camera:camera-core:$cameraxVersion")
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
