@@ -15,18 +15,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.ristosmart.repository.TokenRepository
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.ristosmart.ui.screens.checkin.CheckinScreen
 import com.example.ristosmart.ui.screens.kitchenstaff.KitchenStaffHomeScreen
 import com.example.ristosmart.ui.screens.login.Forgot
 import com.example.ristosmart.ui.screens.login.LogInScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterHomeScreen
-import com.example.ristosmart.ui.screens.camera.CameraScreen
 import com.example.ristosmart.ui.theme.RistoSmartTheme
 import com.example.ristosmart.ui.theme.ThemeManager
 
@@ -99,29 +96,6 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
                 onNavigateBack = {
                     // Navigate explicitly to checkin, popping the current stack
                     navController.navigate("checkin") {
-                        popUpTo("kitchen_staff_home") { inclusive = true }
-                    }
-                },
-                onNavigateToCamera = {
-                    navController.navigate("camera")
-                }
-            )
-        }
-
-        composable("camera"){
-            CameraScreen(
-                onNavigateToHome = {
-                    navController.navigate("kitchen_staff_home") {
-                        popUpTo("kitchen_staff_home") { inclusive = true }
-                    }
-                },
-                onNavigateToOrders = {
-                    navController.navigate("kitchen_staff_home") {
-                        popUpTo("kitchen_staff_home") { inclusive = true }
-                    }
-                },
-                onNavigateToInventory = {
-                    navController.navigate("kitchen_staff_home") {
                         popUpTo("kitchen_staff_home") { inclusive = true }
                     }
                 }

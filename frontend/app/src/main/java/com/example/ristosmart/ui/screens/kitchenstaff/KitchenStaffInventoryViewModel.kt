@@ -33,8 +33,41 @@ class KitchenStaffInventoryViewModel : ViewModel() {
             }
         }
     }
+
+    // Camera Logic
+    fun onScanClicked() {
+        _uiState.update { it.copy(isScanning = true, showScanBtn = false, showResults = false) }
+    }
+
+    fun onRetryClicked() {
+        _uiState.update { it.copy(isScanning = true, showScanBtn = false, showResults = false) }
+    }
+
+    fun onBarcodeFound(barcode: String) {
+        println("ML KIT FOUND BARCODE: $barcode")
+        _uiState.update { it.copy(
+            isScanning = false,
+            showScanBtn = false, // Keep scan button hidden
+            showResults = true,
+            scannedCode = barcode
+        ) }
+    }
+
+    fun resetCameraState() {
+        _uiState.update { it.copy(
+            isScanning = false,
+            showScanBtn = true,
+            showResults = false,
+            scannedCode = ""
+        ) }
+    }
 }
 
 data class KitchenStaffInventoryUiState(
-    val inventoryItems: List<InventoryItem> = emptyList()
+    val inventoryItems: List<InventoryItem> = emptyList(),
+    // Camera State
+    val isScanning: Boolean = false,
+    val showScanBtn: Boolean = true,
+    val showResults: Boolean = false,
+    val scannedCode: String = ""
 )
