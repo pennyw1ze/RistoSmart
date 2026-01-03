@@ -18,6 +18,7 @@ data class InventoryItem(
     val description: String?, // Nullable since sample is "string" which might imply optional
     val ean: String,
     val id: String,
+    val quantity: Int,
     @SerialName("image_url")
     val imageUrl: String?, // Nullable since sample is "string"
     val name: String,

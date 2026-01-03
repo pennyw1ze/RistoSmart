@@ -1,6 +1,8 @@
 package com.example.ristosmart.network
 
+import com.example.ristosmart.model.InventoryItem
 import com.example.ristosmart.model.InventoryResponse
+import com.example.ristosmart.model.InventoryUpdateRequest
 import com.example.ristosmart.model.LoginRequest
 import com.example.ristosmart.model.LoginResponse
 import com.example.ristosmart.model.MenuResponse
@@ -10,6 +12,7 @@ import com.example.ristosmart.model.OrdersListResponse
 import com.example.ristosmart.model.UpdateOrderStatusRequest
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -43,4 +46,18 @@ interface ApiService {
         @Path("order_id") orderId: String,
         @Body request: UpdateOrderStatusRequest
     ): Response<OrderResponse>
+
+    @PUT("api/inventory/{product_id}")
+    suspend fun putInventoryItem(
+        @Header("Authorization") token: String,
+        @Path("product_id") productId: String,
+        @Body request: InventoryUpdateRequest
+    ): Response<InventoryResponse>
+
+    @DELETE("api/inventory/{product_id}")
+    suspend fun deleteInventoryItem(
+        @Header("Authorization") token: String,
+        @Path("product_id") productId: String,
+        @Body request: InventoryUpdateRequest
+    ): Response<InventoryResponse>
 }

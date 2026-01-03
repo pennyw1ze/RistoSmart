@@ -43,6 +43,40 @@ class KitchenStaffInventoryViewModel : ViewModel() {
         _uiState.update { it.copy(isScanning = true, showScanBtn = false, showResults = false) }
     }
 
+    fun onAddClicked(productId: String,quantity: Int) {
+        viewModelScope.launch {
+            val result = inventoryRepository.putInventoryItem(productId, quantity)
+
+            result.onSuccess { response ->
+                _uiState.update { it.copy(
+                    addedItem = true,
+                    inventoryItems = response.data
+                ) }
+                println("ITEM SUCCESSFULLY ADDED TO DB!")
+            }
+            result.onFailure { e ->
+                println("Error fetching inventory: ${e.message}")
+            }
+        }
+    }
+
+    fun onRemoveClicked(productId: String, quantity: Int){
+        viewModelScope.launch {
+            val result = inventoryRepository.deleteInventoryItem(productId, quantity)
+
+            result.onSuccess { response ->
+                _uiState.update { it.copy(
+                    removedItem = true,
+                    inventoryItems = response.data
+                ) }
+                println("ITEM SUCCESSFULLY REMOVED FROM DB!")
+            }
+            result.onFailure { e ->
+                println("Error fetching inventory: ${e.message}")
+            }
+        }
+    }
+
     fun onBarcodeFound(barcode: String) {
         println("ML KIT FOUND BARCODE: $barcode")
         _uiState.update { it.copy(
@@ -51,6 +85,25 @@ class KitchenStaffInventoryViewModel : ViewModel() {
             showResults = true,
             scannedCode = barcode
         ) }
+    }
+
+
+    fun setAddedItemState(newValue: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(addedItem = newValue)
+        }
+    }
+
+    fun setRemovedItemState(newValue: Boolean) {
+        _uiState.update { currentState ->
+            currentState.copy(removedItem = newValue)
+        }
+    }
+
+    fun setSelectedItem(item: InventoryItem?) {
+        _uiState.update { currentState ->
+            currentState.copy(selectedItem = item)
+        }
     }
 
     fun resetCameraState() {
@@ -69,5 +122,9 @@ data class KitchenStaffInventoryUiState(
     val isScanning: Boolean = false,
     val showScanBtn: Boolean = true,
     val showResults: Boolean = false,
-    val scannedCode: String = ""
+    val scannedCode: String = "",
+    val addedItem: Boolean = false,
+    val itemData: List<InventoryItem> = emptyList(),
+    val removedItem: Boolean = false,
+    val selectedItem: InventoryItem? = null
 )
