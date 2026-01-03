@@ -639,16 +639,16 @@ fun WaiterTablesScreen(
                     }
                     
                     item {
-                        val isConfirmed = uiState.filterStatus == "confirmed"
+                        val isPreparing = uiState.filterStatus == "preparing"
                         Button(
                             onClick = { 
-                                viewModel.filterOrders(if (isConfirmed) null else "confirmed", uiState.sortByRecent)
+                                viewModel.filterOrders(if (isPreparing) null else "preparing", uiState.sortByRecent)
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isConfirmed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = if (isPreparing) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant
                             )
                         ) {
-                            Text("Confirmed", color = if (isConfirmed) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Preparing", color = if (isPreparing) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     
@@ -779,10 +779,10 @@ fun TableCard(
                                 }
                             }
                             
-                            // 2. Kitchen Staff (Chef) Action: Confirmed -> Ready
+                            // 2. Kitchen Staff (Chef) Action: Preparing -> Ready
                             // Only chef (or manager/kitchen staff) should see this button
                             // Assuming "chef" is the role name for kitchen staff based on previous context
-                            if (userRole == "chef" && order.status.equals("confirmed", ignoreCase = true)) {
+                            if (userRole == "chef" && order.status.equals("preparing", ignoreCase = true)) {
                                 Button(
                                     onClick = { onUpdateStatus(order.id, "ready") },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)), // Green for ready
