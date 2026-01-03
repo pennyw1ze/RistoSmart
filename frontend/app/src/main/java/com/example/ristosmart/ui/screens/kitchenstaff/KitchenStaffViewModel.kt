@@ -86,6 +86,11 @@ class KitchenStaffViewModel : ViewModel() {
     fun onCheckoutConsumed() {
         _uiState.update { it.copy(isCheckedOut = false) }
     }
+    
+    // Function to set the nav index programmatically
+    fun setNavIndex(index: Int) {
+        _uiState.update { it.copy(selectedNavIndex = index) }
+    }
 }
 
 data class KitchenStaffUiState(

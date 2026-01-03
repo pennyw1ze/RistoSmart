@@ -4,20 +4,30 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -36,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,10 +58,10 @@ import com.example.ristosmart.ui.screens.waiter.WaiterTablesViewModel
 fun KitchenStaffHomeScreen(
     viewModel: KitchenStaffViewModel = viewModel(),
     tablesViewModel: WaiterTablesViewModel = viewModel(),
-    onNavigateBack: () -> Unit, //is this used?
-    onNavigateToHome: ()-> Unit,
-    onNavigateToOrders: () -> Unit,
-    onNavigateToInventory: () -> Unit
+    inventoryViewModel: KitchenStaffInventoryViewModel = viewModel(),
+    onNavigateBack: () -> Unit,
+    onNavigateToCamera: () -> Unit,
+    initialTabIndex: Int? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
@@ -63,6 +72,13 @@ fun KitchenStaffHomeScreen(
         animationSpec = tween(durationMillis = 100),
         label = "Button Scale Animation"
     )
+
+    // Handle initial tab index if provided
+    LaunchedEffect(initialTabIndex) {
+        if (initialTabIndex != null) {
+            viewModel.onNavBarBtnPressed(initialTabIndex)
+        }
+    }
 
     // Observe checkout state for navigation
     LaunchedEffect(uiState.isCheckedOut) {
@@ -77,6 +93,10 @@ fun KitchenStaffHomeScreen(
     LaunchedEffect(uiState.selectedNavIndex) {
         if (uiState.selectedNavIndex == 0) {
             tablesViewModel.fetchOrders()
+        }
+        // Refresh inventory when navigating to the inventory screen (index 2)
+        if (uiState.selectedNavIndex == 2) {
+             inventoryViewModel.fetchInventory()
         }
     }
 
@@ -104,13 +124,7 @@ fun KitchenStaffHomeScreen(
                         icon = { Icon(icons[index], contentDescription = item) },
                         label = { Text(item) },
                         selected = uiState.selectedNavIndex == index,
-                        onClick = { viewModel.onNavBarBtnPressed(index)
-                            when (index) {
-                                0 -> onNavigateToOrders()
-                                1 -> onNavigateToHome()
-                                2 -> onNavigateToInventory()
-                            }
-                                  },
+                        onClick = { viewModel.onNavBarBtnPressed(index) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -136,7 +150,11 @@ fun KitchenStaffHomeScreen(
                 },
                 modifier = Modifier.padding(innerPadding)
             )
-            2 -> KitchenStaffInventoryScreen(modifier = Modifier.padding(innerPadding))
+            2 -> KitchenStaffInventoryScreen(
+                modifier = Modifier.padding(innerPadding),
+                viewModel = inventoryViewModel,
+                onNavigateToCamera = onNavigateToCamera
+            )
         }
     }
 }
@@ -199,13 +217,107 @@ fun KitchenStaffHomeContent(
         }
     }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KitchenStaffInventoryScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+fun KitchenStaffInventoryScreen(
+    viewModel: KitchenStaffInventoryViewModel = viewModel(),
+    onNavigateToCamera: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    // No Scaffold or BottomBar here, as it will be embedded
+
+    Box(
+        modifier = modifier.fillMaxSize()
     ) {
-        Text(text = "Inventory Screen (Placeholder)")
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Current stock",
+                style = MaterialTheme.typography.titleLarge
+            )
+            
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(uiState.inventoryItems) { item ->
+                    Card(
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ){
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                //text should be in the start and in the end of the row
+                                Text(text = item.name, style = MaterialTheme.typography.titleMedium)
+                                Text(text = "Price: ${item.price}", style = MaterialTheme.typography.bodyMedium)
+                            }
+
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = item.description ?: "", style = MaterialTheme.typography.bodySmall)
+                            }
+                            
+                            Text("Category: ${item.category}", style = MaterialTheme.typography.bodySmall)
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ){
+                                Button(
+                                    onClick = { /* TODO: Add remove logic (PUT TO API) */ },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError
+                                    )
+                                ) {
+                                    Text("remove quantity")
+                                }
+
+                                Button(
+                                    onClick = { /* TODO: Add add logic (PUT TO API) */ },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                ) {
+                                    Text("add quantity")
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        FloatingActionButton(
+            onClick = {
+                onNavigateToCamera()
+            },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Filled.PhotoCamera, contentDescription = "Camera")
+        }
     }
 }

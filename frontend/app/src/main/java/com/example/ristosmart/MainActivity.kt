@@ -22,12 +22,9 @@ import com.example.ristosmart.repository.TokenRepository
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ristosmart.ui.screens.checkin.CheckinScreen
-import com.example.ristosmart.ui.screens.inventory.InventoryScreen
 import com.example.ristosmart.ui.screens.kitchenstaff.KitchenStaffHomeScreen
 import com.example.ristosmart.ui.screens.login.Forgot
 import com.example.ristosmart.ui.screens.login.LogInScreen
-import com.example.ristosmart.ui.screens.orders.OrdersScreen
-import com.example.ristosmart.ui.screens.tables.TableScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterHomeScreen
 import com.example.ristosmart.ui.screens.camera.CameraScreen
 import com.example.ristosmart.ui.theme.RistoSmartTheme
@@ -105,78 +102,8 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
                         popUpTo("kitchen_staff_home") { inclusive = true }
                     }
                 },
-                onNavigateToOrders = {
-                    navController.navigate("orders") {
-                    }
-                },
-                onNavigateToHome = {
-                    navController.navigate("kitchen_staff_home") {
-                    }
-                },
-                onNavigateToInventory = {
-                    navController.navigate("inventory") {
-                    }
-                }
-            )
-        }
-
-        composable("orders") {
-            OrdersScreen(
-                onNavigateToHome = {
-                    navController.navigate("kitchen_staff_home") {
-                    }
-                },
-                onNavigateToTables = { tableId ->
-                    navController.navigate("tables/$tableId") {
-                    }
-                },
-                onNavigateToInventory = {
-                    navController.navigate("inventory") {
-                    }
-                }
-            )
-        }
-
-        composable("tables/{tableId}",
-            arguments = listOf(navArgument("tableId") { type = NavType.IntType }))
-        {
-            backStackEntry ->
-            // Extract the argument safely
-            val tableId = backStackEntry.arguments?.getInt("tableId") ?: 0
-            TableScreen(
-                onNavigateToOrders = {
-                    navController.navigate("orders") {
-                    }
-                },
-                onNavigateToHome = {
-                    navController.navigate("kitchen_staff_home") {
-                    }
-                },
-                onNavigateToInventory = {
-                    navController.navigate("inventory") {
-                    }
-                }
-            )
-        }
-
-        composable("inventory") {
-            //I don't have inventory yet
-            InventoryScreen(
-                onNavigateToHome = {
-                    navController.navigate("kitchen_staff_home") {
-                    }
-                },
-                onNavigateToOrders = {
-                    navController.navigate("orders") {
-                    }
-                },
-                onNavigateToInventory = {
-                    navController.navigate("inventory") {
-                    }
-                },
                 onNavigateToCamera = {
-                    navController.navigate("camera") {
-                    }
+                    navController.navigate("camera")
                 }
             )
         }
@@ -185,14 +112,17 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
             CameraScreen(
                 onNavigateToHome = {
                     navController.navigate("kitchen_staff_home") {
+                        popUpTo("kitchen_staff_home") { inclusive = true }
                     }
                 },
                 onNavigateToOrders = {
-                    navController.navigate("orders") {
+                    navController.navigate("kitchen_staff_home") {
+                        popUpTo("kitchen_staff_home") { inclusive = true }
                     }
                 },
                 onNavigateToInventory = {
-                    navController.navigate("inventory") {
+                    navController.navigate("kitchen_staff_home") {
+                        popUpTo("kitchen_staff_home") { inclusive = true }
                     }
                 }
             )

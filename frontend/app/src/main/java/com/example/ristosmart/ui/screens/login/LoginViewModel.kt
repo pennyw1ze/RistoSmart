@@ -21,6 +21,19 @@ class LoginViewModel : ViewModel() {
     // Public state (read-only)
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    init {
+        // Load saved preferences on initialization
+        val savedRememberMe = TokenRepository.getRememberMe()
+        val savedUsername = TokenRepository.getSavedUsername() ?: ""
+        
+        _uiState.update { 
+            it.copy(
+                rememberMe = savedRememberMe,
+                email = savedUsername
+            ) 
+        }
+    }
+
 
     fun onEmailChange(newEmail: String) {
         _uiState.update { it.copy(email = newEmail, error = null) }
@@ -51,6 +64,7 @@ class LoginViewModel : ViewModel() {
     fun login() {
         val username = _uiState.value.email
         val password = _uiState.value.password
+        val rememberMe = _uiState.value.rememberMe
         
         if (username.isBlank() || password.isBlank()) {
             _uiState.update { it.copy(error = "Username and password required") }
@@ -69,6 +83,9 @@ class LoginViewModel : ViewModel() {
                     loginResponse.refreshToken,
                     loginResponse.user
                 )
+
+                // Save or clear Remember Me preferences
+                TokenRepository.saveRememberMe(rememberMe, username)
                 
                 _uiState.update { 
                     it.copy(

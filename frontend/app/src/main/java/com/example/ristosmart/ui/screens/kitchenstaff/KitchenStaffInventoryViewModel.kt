@@ -1,23 +1,27 @@
-package com.example.ristosmart.ui.screens.inventory
+package com.example.ristosmart.ui.screens.kitchenstaff
 
 import androidx.lifecycle.ViewModel
-import com.example.ristosmart.repository.InventoryRepository
 import androidx.lifecycle.viewModelScope
 import com.example.ristosmart.model.InventoryItem
+import com.example.ristosmart.repository.InventoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class InventoryViewModel: ViewModel() {
+class KitchenStaffInventoryViewModel : ViewModel() {
 
     private val inventoryRepository = InventoryRepository()
-    private val _uiState = MutableStateFlow(InventoryUiState())
+    private val _uiState = MutableStateFlow(KitchenStaffInventoryUiState())
     // Public state (read-only)
-    val uiState: StateFlow<InventoryUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<KitchenStaffInventoryUiState> = _uiState.asStateFlow()
 
     init {
+        fetchInventory()
+    }
+
+    fun fetchInventory() {
         viewModelScope.launch {
             val result = inventoryRepository.getInventory()
 
@@ -29,19 +33,8 @@ class InventoryViewModel: ViewModel() {
             }
         }
     }
-
-    fun onBtnPressed(tableNumber: Int){
-        println("Table $tableNumber selected")
-    }
-
-    fun onNavBarBtnPressed(id: Int) {
-        _uiState.update { it.copy(selectedNavIndex = id) }
-        println("Navbar item $id pressed. Handle navigation or API call here.")
-    }
-
 }
 
-data class InventoryUiState(
-    val selectedNavIndex: Int = 0,
+data class KitchenStaffInventoryUiState(
     val inventoryItems: List<InventoryItem> = emptyList()
 )
