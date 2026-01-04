@@ -49,7 +49,7 @@ class KitchenStaffInventoryViewModel : ViewModel() {
 
             result.onSuccess { response ->
                 _uiState.update { it.copy(
-                    addedItem = true,
+                    addedItem = false,
                     inventoryItems = response.data
                 ) }
                 println("ITEM SUCCESSFULLY ADDED TO DB!")
@@ -93,8 +93,6 @@ class KitchenStaffInventoryViewModel : ViewModel() {
                     // 2. IMPORTANT: Close the 'Quantity' dialog first!
                     // If you don't do this, the error dialog might be blocked by the quantity dialog.
                     setBarcodeItem(false)
-                    resetCameraState()
-
                     // 3. Open the 'Item Not Found' dialog
                     setFetchItemError(true)
 
@@ -110,9 +108,8 @@ class KitchenStaffInventoryViewModel : ViewModel() {
                                 // Append the newly found item(s) to the existing list
                                 inventoryItems = currentState.inventoryItems + response.data,
                                 // Trigger the "Added" state (optional, if you want a snackbar/toast)
-                                addedItem = true,
+                                addedItem = false,
                                 // IMPORTANT: Close the "Not Found" dialog since we found it!
-                                fetchItemError = false
                             )
                         }
                     }
@@ -142,7 +139,7 @@ class KitchenStaffInventoryViewModel : ViewModel() {
 
             result.onSuccess { response ->
                 _uiState.update { it.copy(
-                    removedItem = true,
+                    removedItem = false,
                     inventoryItems = response.data
                 ) }
                 println("ITEM SUCCESSFULLY REMOVED FROM DB!")

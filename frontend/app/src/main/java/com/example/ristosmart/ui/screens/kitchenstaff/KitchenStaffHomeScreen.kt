@@ -195,7 +195,7 @@ fun KitchenStaffHomeContent(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
 
-        Text(text = "Welcome Kitchen Staff")
+        Text(text = "Welcome Chef")
 
         Card(
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
@@ -232,7 +232,7 @@ fun KitchenStaffHomeContent(
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(text = "Working since:")
-                        Text(text = uiState.time) 
+                        Text(text = uiState.time)
                     }
                 }
             }
@@ -504,7 +504,7 @@ fun KitchenStaffCameraView(
         AlertDialog(
             onDismissRequest = { viewModel.setFetchItemError(false) },
             title = { Text("Item Not Found") },
-            text = { Text("Item not found internally.") },
+            text = { Text("Data about product will be fetched from an external source.") },
             confirmButton = {
                 TextButton(
                     onClick = { viewModel.setFetchItemError(false) }
