@@ -11,13 +11,21 @@ data class InventoryResponse(
 )
 
 @Serializable
+data class InventoryEmptyResponse(
+    val data: Map<String, String> = emptyMap(), // Handles "data": {}
+    val message: String,
+    val success: Boolean
+)
+
+@Serializable
 data class InventoryItem(
-    val category: String,
+    val category: String?,
     @SerialName("created_at")
     val createdAt: String,
     val description: String?, // Nullable since sample is "string" which might imply optional
     val ean: String,
     val id: String,
+    val quantity: Int,
     @SerialName("image_url")
     val imageUrl: String?, // Nullable since sample is "string"
     val name: String,

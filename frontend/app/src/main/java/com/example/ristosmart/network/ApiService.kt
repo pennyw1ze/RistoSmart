@@ -49,7 +49,7 @@ interface ApiService {
         @Body request: UpdateMenuItemRequest
     ): Response<MenuItemResponse>
 
-     @PUT("api/menu/{menu_id}")
+    @PUT("api/menu/{menu_id}")
     suspend fun updateMenuAvailability(
         @Header("Authorization") token: String,
         @Path("menu_id") menuId: String,
@@ -124,7 +124,7 @@ interface ApiService {
         @Body request: UpdateOrderStatusRequest
     ): Response<OrderResponse>
 
-     @PUT("api/orders/{order_id}/items/{item_id}/status")
+    @PUT("api/orders/{order_id}/items/{item_id}/status")
     suspend fun updateOrderItemStatus(
         @Header("Authorization") token: String,
         @Path("order_id") orderId: String,
@@ -136,5 +136,34 @@ interface ApiService {
     // region Inventory
     @GET("api/inventory/")
     suspend fun getInventory(@Header("Authorization") token: String): Response<InventoryResponse>
+
+    @POST("api/inventory/")
+    suspend fun postProductToInventory(
+        @Header("Authorization") token: String,
+        @Body request: InventoryProductRequest
+    ): Response<InventoryEmptyResponse>
+
+    @PATCH("api/inventory/{product_id}/quantity")
+    suspend fun putInventoryItem(
+        @Header("Authorization") token: String,
+        @Path("product_id") productId: String,
+        @Body request: InventoryUpdateRequest
+    ): Response<InventoryPutResponse>
+
+    @GET("api/inventory/ean/{ean}")
+    suspend fun getInventoryByEan(
+        @Header("Authorization") token: String,
+        @Path("ean") ean: String
+    ): Response<InventoryResponse>
     // endregion
+}
+
+interface UpcTrialApi {
+
+    @POST("prod/trial/lookup")
+    suspend fun lookupTrialBarcode(
+        @Body request: LookupRequest
+    ): Response<LookupResponse>
+
+    companion object
 }

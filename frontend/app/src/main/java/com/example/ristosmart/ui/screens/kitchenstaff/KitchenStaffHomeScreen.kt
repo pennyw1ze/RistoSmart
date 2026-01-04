@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.TableRestaurant
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,13 +45,16 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -165,7 +169,6 @@ fun KitchenStaffHomeScreen(
                 isCheckingOut = isCheckingOut,
                 buttonScale = buttonScale,
                 onCheckoutPressed = {
-                    isCheckingOut = true
                     viewModel.onCheckoutPressed()
                 },
                 modifier = Modifier.padding(innerPadding)
@@ -242,8 +245,45 @@ fun KitchenStaffInventoryScreen(
     viewModel: KitchenStaffInventoryViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
+
     val uiState by viewModel.uiState.collectAsState()
     var showCamera by remember { mutableStateOf(false) }
+
+    if (uiState.addedItem) {
+        //insert an alert dialog here with a slider asking for the quantity to insert
+        QuantityAdjustmentDialog(
+            title = "Add Quantity",
+            confirmText = "Add",
+            onDismiss = { viewModel.setAddedItemState(false) },
+            onConfirm = { quantity ->
+                uiState.selectedItem?.let { item ->
+                    viewModel.onAddClicked(item.id, quantity.toInt())
+                }
+                viewModel.setAddedItemState(false) // Close dialog
+            }
+        )
+    }
+
+
+
+    if (uiState.removedItem) {
+        // 1. Get the current quantity of the item
+        val maxQuantity = uiState.selectedItem?.quantity ?: 5
+        QuantityAdjustmentDialog(
+            title = "Remove Quantity",
+            confirmText = "Remove",
+            onDismiss = { viewModel.setRemovedItemState(false) },
+            onConfirm = { quantity ->
+                uiState.selectedItem?.let { item ->
+                    viewModel.onRemoveClicked(item.id, quantity.toInt())
+                }
+                viewModel.setRemovedItemState(false) // Close dialog
+            },
+            maxQuantity = maxQuantity
+        )
+
+
+    }
 
     // No Scaffold or BottomBar here, as it will be embedded
 
@@ -253,7 +293,7 @@ fun KitchenStaffInventoryScreen(
         if (showCamera) {
             KitchenStaffCameraView(
                 viewModel = viewModel,
-                onClose = { 
+                onClose = {
                     showCamera = false
                     viewModel.resetCameraState()
                 }
@@ -269,65 +309,105 @@ fun KitchenStaffInventoryScreen(
                     text = "Current stock",
                     style = MaterialTheme.typography.titleLarge
                 )
-                
+
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(uiState.inventoryItems) { item ->
+                        //println("ITEM_ID : ${item.id}")
                         Card(
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                        ){
+                        ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    //text should be in the start and in the end of the row
-                                    Text(text = item.name, style = MaterialTheme.typography.titleMedium)
-                                    Text(text = "Price: ${item.price}", style = MaterialTheme.typography.bodyMedium)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = item.name,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        Text(
+                                            text = item.category ?: "Uncategorized",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                    Text(
+                                        text = "€${item.price}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 }
 
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(text = item.description ?: "", style = MaterialTheme.typography.bodySmall)
+                                if (!item.description.isNullOrEmpty()) {
+                                    Text(
+                                        text = item.description,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
-                                
-                                Text("Category: ${item.category}", style = MaterialTheme.typography.bodySmall)
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ){
-                                    Button(
-                                        onClick = { /* TODO: Add remove logic (PUT TO API) */ },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.error,
-                                            contentColor = MaterialTheme.colorScheme.onError
-                                        )
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Inventory2,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Quantity: ${item.quantity}",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            viewModel.setSelectedItem(item)
+                                            viewModel.setRemovedItemState(true)
+                                        },
+                                        enabled = item.quantity > 0,
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.error
+                                        ),
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (item.quantity > 0) MaterialTheme.colorScheme.error
+                                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        Text("remove quantity")
+                                        Text("Remove")
                                     }
 
                                     Button(
-                                        onClick = { /* TODO: Add add logic (PUT TO API) */ },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                        )
+                                        onClick = {
+                                            viewModel.setSelectedItem(item)
+                                            viewModel.setAddedItemState(true)
+                                        },
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        Text("add quantity")
+                                        Text("Add")
                                     }
-
                                 }
                             }
                         }
@@ -351,6 +431,50 @@ fun KitchenStaffInventoryScreen(
     }
 }
 
+@Composable
+fun QuantityAdjustmentDialog(
+    title: String,
+    confirmText: String,
+    onDismiss: () -> Unit,
+    onConfirm: (Float) -> Unit,
+    maxQuantity: Int = 50,
+) {
+    var quantity by remember { mutableFloatStateOf(1f) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Quantity: ${quantity.toInt()}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Slider(
+                    value = quantity,
+
+                    onValueChange = { quantity = it },
+                    valueRange = 1f..maxOf(1f, maxQuantity.toFloat()), // Adjust range as needed, ensuring min is 1
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(quantity) }
+            ) {
+                Text(confirmText)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun KitchenStaffCameraView(
@@ -362,6 +486,34 @@ fun KitchenStaffCameraView(
 
     // 1. Setup the permission state
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+
+    if(uiState.barcodeItem){
+        QuantityAdjustmentDialog(
+            title = "Add Quantity",
+            confirmText = "Add",
+            onDismiss = {
+                viewModel.setBarcodeItem(false)
+                viewModel.resetCameraState()
+            },
+            onConfirm = {quantity -> viewModel.onAddBarcodeClicked(uiState.scannedCode, quantity.toInt())
+            }
+        )
+    }
+    println(uiState.fetchItemError)
+    if (uiState.fetchItemError) {
+        AlertDialog(
+            onDismissRequest = { viewModel.setFetchItemError(false) },
+            title = { Text("Item Not Found") },
+            text = { Text("Item not found internally.") },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.setFetchItemError(false) }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
     // 2. Launch request when the screen opens if not granted
     LaunchedEffect(Unit) {
@@ -407,21 +559,21 @@ fun KitchenStaffCameraView(
             
             // Play sound when results are shown
             LaunchedEffect(uiState.showResults) {
-                 if (uiState.showResults) {
-                     val soundId = context.resources.getIdentifier("walletsound", "raw", context.packageName)
-                     if (soundId != 0) {
-                        try {
-                            val mediaPlayer = android.media.MediaPlayer.create(context, soundId)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener { it.release() }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                     } else {
-                         val toneGen = android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 100)
-                         toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 150)
-                     }
+
+                 val soundId = context.resources.getIdentifier("walletsound", "raw", context.packageName)
+                 if (soundId != 0) {
+                    try {
+                        val mediaPlayer = android.media.MediaPlayer.create(context, soundId)
+                        mediaPlayer.start()
+                        mediaPlayer.setOnCompletionListener { it.release() }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                 } else {
+                     val toneGen = android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 100)
+                     toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 150)
                  }
+
             }
 
             Box(
@@ -464,10 +616,10 @@ fun KitchenStaffCameraView(
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                OutlinedButton(onClick = { viewModel.onRetryClicked() }) {
+                                OutlinedButton(onClick = { viewModel. onRetryClicked()}) {
                                     Text("Retry")
                                 }
-                                Button(onClick = { /* Handle Add Item */ }) {
+                                Button(onClick = { viewModel.setBarcodeItem(true) }) {
                                     Text("Add Item")
                                 }
                             }

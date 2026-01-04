@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
     // backend address
     private const val BASE_URL = "https://ristosmart-215056753966.europe-west1.run.app/"
+    private const val UPC_BASE_URL = "https://api.upcitemdb.com/"
 
     @OptIn(ExperimentalSerializationApi::class)
     private val json = Json {
@@ -35,5 +36,14 @@ object RetrofitClient {
 
     val apiService: ApiService by lazy {
         instance.create(ApiService::class.java)
+    }
+
+    val upcTrialApi: UpcTrialApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(UPC_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(UpcTrialApi::class.java)
     }
 }

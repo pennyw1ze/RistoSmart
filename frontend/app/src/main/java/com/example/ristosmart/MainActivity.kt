@@ -1,4 +1,4 @@
-package com.example.ristosmart
+sssssspackage com.example.ristosmart
 
 import android.content.Context
 import android.hardware.Sensor
@@ -23,7 +23,6 @@ import com.example.ristosmart.ui.screens.checkin.CheckinScreen
 import com.example.ristosmart.ui.screens.kitchenstaff.KitchenStaffHomeScreen
 import com.example.ristosmart.ui.screens.login.Forgot
 import com.example.ristosmart.ui.screens.login.LogInScreen
-import com.example.ristosmart.ui.screens.manager.ManagerHomeScreen
 import com.example.ristosmart.ui.screens.waiter.WaiterHomeScreen
 import com.example.ristosmart.ui.theme.RistoSmartTheme
 import com.example.ristosmart.ui.theme.ThemeManager
@@ -48,17 +47,9 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
                 },
                 onLoginSuccess = { user ->
                     Log.d("Navigation", "User role: ${user.role}")
-                    
-                    if (user.role == "manager") {
-                         // Redirect manager directly to manager home
-                         navController.navigate("manager_home") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    } else {
-                        // Redirect others to checkin screen
-                        navController.navigate("checkin") {
-                            popUpTo("login") { inclusive = true }
-                        }
+                    // Redirect to checkin screen regardless of role
+                    navController.navigate("checkin") {
+                        popUpTo("login") { inclusive = true }
                     }
                 }
             )
@@ -106,17 +97,6 @@ fun RistoSmartApp(modifier: Modifier = Modifier) {
                     // Navigate explicitly to checkin, popping the current stack
                     navController.navigate("checkin") {
                         popUpTo("kitchen_staff_home") { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        // 6. Manager Home Route
-        composable("manager_home") {
-            ManagerHomeScreen(
-                onNavigateBack = {
-                     navController.navigate("login") {
-                        popUpTo("manager_home") { inclusive = true }
                     }
                 }
             )
