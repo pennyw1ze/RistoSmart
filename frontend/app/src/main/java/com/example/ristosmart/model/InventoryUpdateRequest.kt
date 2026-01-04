@@ -4,5 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class InventoryUpdateRequest(
-    val quantity: Int
+    val amount: Int,
+    val operation: String
+)
+
+@Serializable
+data class InventoryPutResponse(
+    val data: InventoryItem,
+    val message: String,
+    val success: Boolean
 )

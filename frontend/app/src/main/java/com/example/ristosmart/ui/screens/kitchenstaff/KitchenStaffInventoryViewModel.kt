@@ -55,9 +55,29 @@ class KitchenStaffInventoryViewModel : ViewModel() {
                 println("ITEM SUCCESSFULLY ADDED TO DB!")
             }
             result.onFailure { e ->
-                println("Error fetching inventory: ${e.message}")
+                println("Error fetching add item: ${e.message}")
             }
         }
+    }
+
+    fun onAddBarcodeClicked(barcode: String, quantity: Int){
+        viewModelScope.launch {
+            println("API CALL MADE")
+            val result = inventoryRepository.putInventoryItemByBarcode(barcode, quantity)
+
+            result.onSuccess { response ->
+                _uiState.update { it.copy(
+                    inventoryItems = response.data
+                ) }
+                println("ITEM SUCCESSFULLY ADDED TO DB!")
+            }
+            result.onFailure { e ->
+                println("Error fetching barcode item: ${e.message}")
+            }
+
+        }
+        setBarcodeItem(false)
+        resetCameraState()
     }
 
     fun onRemoveClicked(productId: String, quantity: Int){
@@ -72,7 +92,7 @@ class KitchenStaffInventoryViewModel : ViewModel() {
                 println("ITEM SUCCESSFULLY REMOVED FROM DB!")
             }
             result.onFailure { e ->
-                println("Error fetching inventory: ${e.message}")
+                println("Error fetching remove item: ${e.message}")
             }
         }
     }
@@ -106,6 +126,14 @@ class KitchenStaffInventoryViewModel : ViewModel() {
         }
     }
 
+    fun setBarcodeItem(barcodeItem: Boolean){
+        _uiState.update { currentState ->
+            currentState.copy(barcodeItem = barcodeItem)
+        }
+    }
+
+
+
     fun resetCameraState() {
         _uiState.update { it.copy(
             isScanning = false,
@@ -126,5 +154,6 @@ data class KitchenStaffInventoryUiState(
     val addedItem: Boolean = false,
     val itemData: List<InventoryItem> = emptyList(),
     val removedItem: Boolean = false,
-    val selectedItem: InventoryItem? = null
+    val selectedItem: InventoryItem? = null,
+    val barcodeItem: Boolean = false
 )

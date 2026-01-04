@@ -265,6 +265,8 @@ fun KitchenStaffInventoryScreen(
     }
 
     if (uiState.removedItem) {
+        // 1. Get the current quantity of the item
+        val maxQuantity = uiState.selectedItem?.quantity ?: 5
         QuantityAdjustmentDialog(
             title = "Remove Quantity",
             confirmText = "Remove",
@@ -274,7 +276,8 @@ fun KitchenStaffInventoryScreen(
                     viewModel.onRemoveClicked(item.id, quantity.toInt())
                 }
                 viewModel.setRemovedItemState(false) // Close dialog
-            }
+            },
+            maxQuantity = maxQuantity
         )
     }
 
@@ -379,10 +382,14 @@ fun KitchenStaffInventoryScreen(
                                             viewModel.setSelectedItem(item)
                                             viewModel.setRemovedItemState(true)
                                         },
+                                        enabled = item.quantity > 0,
                                         colors = ButtonDefaults.outlinedButtonColors(
                                             contentColor = MaterialTheme.colorScheme.error
                                         ),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (item.quantity > 0) MaterialTheme.colorScheme.error
+                                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Text("Remove")
@@ -425,10 +432,10 @@ fun QuantityAdjustmentDialog(
     title: String,
     confirmText: String,
     onDismiss: () -> Unit,
-    onConfirm: (Float) -> Unit
+    onConfirm: (Float) -> Unit,
+    maxQuantity: Int = 50,
 ) {
     var quantity by remember { mutableFloatStateOf(1f) }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -442,9 +449,9 @@ fun QuantityAdjustmentDialog(
                 )
                 Slider(
                     value = quantity,
+
                     onValueChange = { quantity = it },
-                    valueRange = 1f..50f, // Adjust range as needed
-                    steps = 48 // (50 - 1) - 1 creates integer steps
+                    valueRange = 1f..maxOf(1f, maxQuantity.toFloat()), // Adjust range as needed, ensuring min is 1
                 )
             }
         },
@@ -475,6 +482,19 @@ fun KitchenStaffCameraView(
 
     // 1. Setup the permission state
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+
+    if(uiState.barcodeItem){
+        QuantityAdjustmentDialog(
+            title = "Add Quantity",
+            confirmText = "Add",
+            onDismiss = {
+                viewModel.setBarcodeItem(false)
+                viewModel.resetCameraState()
+            },
+            onConfirm = {quantity -> viewModel.onAddBarcodeClicked(uiState.scannedCode, quantity.toInt())
+            }
+        )
+    }
 
     // 2. Launch request when the screen opens if not granted
     LaunchedEffect(Unit) {
@@ -580,7 +600,7 @@ fun KitchenStaffCameraView(
                                 OutlinedButton(onClick = { viewModel. onRetryClicked()}) {
                                     Text("Retry")
                                 }
-                                Button(onClick = { /* TODO: viewModel.onAddClicked()*/ }) {
+                                Button(onClick = { viewModel.setBarcodeItem(true) }) {
                                     Text("Add Item")
                                 }
                             }

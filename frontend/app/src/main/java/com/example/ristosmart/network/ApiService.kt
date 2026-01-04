@@ -1,6 +1,6 @@
 package com.example.ristosmart.network
 
-import com.example.ristosmart.model.InventoryItem
+import com.example.ristosmart.model.InventoryPutResponse
 import com.example.ristosmart.model.InventoryResponse
 import com.example.ristosmart.model.InventoryUpdateRequest
 import com.example.ristosmart.model.LoginRequest
@@ -15,6 +15,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -47,17 +48,18 @@ interface ApiService {
         @Body request: UpdateOrderStatusRequest
     ): Response<OrderResponse>
 
-    @PUT("api/inventory/{product_id}")
+    @PATCH("api/inventory/{product_id}/quantity")
     suspend fun putInventoryItem(
         @Header("Authorization") token: String,
         @Path("product_id") productId: String,
         @Body request: InventoryUpdateRequest
+    ): Response<InventoryPutResponse>
+
+    @GET("api/inventory/ean/{ean}")
+    suspend fun getInventoryByEan(
+        @Header("Authorization") token: String,
+        @Path("ean") ean: String
     ): Response<InventoryResponse>
 
-    @DELETE("api/inventory/{product_id}")
-    suspend fun deleteInventoryItem(
-        @Header("Authorization") token: String,
-        @Path("product_id") productId: String,
-        @Body request: InventoryUpdateRequest
-    ): Response<InventoryResponse>
+
 }
