@@ -1,10 +1,14 @@
 package com.example.ristosmart.network
 
+import com.example.ristosmart.model.InventoryEmptyResponse
+import com.example.ristosmart.model.InventoryProductRequest
 import com.example.ristosmart.model.InventoryPutResponse
 import com.example.ristosmart.model.InventoryResponse
 import com.example.ristosmart.model.InventoryUpdateRequest
 import com.example.ristosmart.model.LoginRequest
 import com.example.ristosmart.model.LoginResponse
+import com.example.ristosmart.model.LookupRequest
+import com.example.ristosmart.model.LookupResponse
 import com.example.ristosmart.model.MenuResponse
 import com.example.ristosmart.model.OrderRequest
 import com.example.ristosmart.model.OrderResponse
@@ -12,7 +16,6 @@ import com.example.ristosmart.model.OrdersListResponse
 import com.example.ristosmart.model.UpdateOrderStatusRequest
 import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
@@ -26,6 +29,10 @@ interface ApiService {
 
     @GET("api/inventory/")
     suspend fun getInventory(@Header("Authorization") token: String): Response<InventoryResponse>
+
+    @POST("api/inventory/")
+    suspend fun postProductToInventory(@Header("Authorization") token: String, @Body request: InventoryProductRequest): Response<InventoryEmptyResponse>
+
 
     @GET("api/menu/")
     suspend fun getMenu(): Response<MenuResponse>
@@ -61,5 +68,15 @@ interface ApiService {
         @Path("ean") ean: String
     ): Response<InventoryResponse>
 
+}
+
+interface UpcTrialApi {
+
+    @POST("prod/trial/lookup")
+    suspend fun lookupTrialBarcode(
+        @Body request: LookupRequest
+    ): Response<LookupResponse>
+
+    companion object
 
 }

@@ -264,6 +264,8 @@ fun KitchenStaffInventoryScreen(
         )
     }
 
+
+
     if (uiState.removedItem) {
         // 1. Get the current quantity of the item
         val maxQuantity = uiState.selectedItem?.quantity ?: 5
@@ -279,6 +281,8 @@ fun KitchenStaffInventoryScreen(
             },
             maxQuantity = maxQuantity
         )
+
+
     }
 
     // No Scaffold or BottomBar here, as it will be embedded
@@ -337,7 +341,7 @@ fun KitchenStaffInventoryScreen(
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                         Text(
-                                            text = item.category,
+                                            text = item.category ?: "Uncategorized",
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.secondary
                                         )
@@ -492,6 +496,21 @@ fun KitchenStaffCameraView(
                 viewModel.resetCameraState()
             },
             onConfirm = {quantity -> viewModel.onAddBarcodeClicked(uiState.scannedCode, quantity.toInt())
+            }
+        )
+    }
+    println(uiState.fetchItemError)
+    if (uiState.fetchItemError) {
+        AlertDialog(
+            onDismissRequest = { viewModel.setFetchItemError(false) },
+            title = { Text("Item Not Found") },
+            text = { Text("Item not found internally.") },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.setFetchItemError(false) }
+                ) {
+                    Text("OK")
+                }
             }
         )
     }
