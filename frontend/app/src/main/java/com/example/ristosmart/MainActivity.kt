@@ -1,4 +1,4 @@
-package com.example.ristosmart
+sssssspackage com.example.ristosmart
 
 import android.content.Context
 import android.hardware.Sensor
