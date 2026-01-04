@@ -1,10 +1,12 @@
 package com.example.ristosmart.network
 
+import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
@@ -21,9 +23,16 @@ object RetrofitClient {
         encodeDefaults = true // <--- IMPORTANT: This ensures default values (like order_type="dine_in") are included in the JSON payload
     }
 
+    private val loggingInterceptor = HttpLoggingInterceptor { message ->
+        Log.d("API_LOG", message)
+    }.apply {
+        level = HttpLoggingInterceptor.Level.BODY // Logs request and response headers and bodies
+    }
+
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        .addInterceptor(loggingInterceptor) // Add the interceptor here
         .build()
 
     val instance: Retrofit by lazy {

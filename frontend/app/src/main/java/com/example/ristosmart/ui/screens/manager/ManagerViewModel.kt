@@ -81,10 +81,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     _uiState.update { it.copy(menuItems = response.body()!!.data, isLoading = false) }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "Error: ${response.code()}") }
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Error: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Exception: ${e.message}") }
             }
         }
     }
@@ -128,10 +128,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     fetchMenu() // Refresh list on success
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Failed to save item: ${response.code()}") }
+                    _uiState.update { it.copy(errorMessage = "Failed to save item: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to save item: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = "Exception while saving item: ${e.message}") }
             }
         }
     }
@@ -145,10 +145,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     fetchMenu() // Refresh list
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Failed to delete item: ${response.code()}") }
+                    _uiState.update { it.copy(errorMessage = "Failed to delete item: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to delete item: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = "Exception while deleting item: ${e.message}") }
             }
         }
     }
@@ -163,10 +163,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     fetchMenu() // Refresh list
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Failed to update availability: ${response.code()}") }
+                    _uiState.update { it.copy(errorMessage = "Failed to update availability: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to update availability: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = "Exception while updating availability: ${e.message}") }
             }
         }
     }
@@ -183,10 +183,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     _uiState.update { it.copy(orders = response.body()!!.data, isLoading = false) }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "Error: ${response.code()}") }
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Error fetching orders: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Exception fetching orders: ${e.message}") }
             }
         }
     }
@@ -200,10 +200,16 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     fetchOrders() // Refresh list
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Failed to delete order: ${response.code()}") }
+                     // Expanded error logging here
+                    val errorBody = response.errorBody()?.string()
+                    val msg = "Failed to delete order: ${response.code()} ${response.message()} - Body: $errorBody"
+                    Log.e("ManagerViewModel", msg)
+                    _uiState.update { it.copy(errorMessage = msg) }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to delete order: ${e.message}") }
+                val msg = "Exception while deleting order: ${e.message}"
+                Log.e("ManagerViewModel", msg, e)
+                _uiState.update { it.copy(errorMessage = msg) }
             }
         }
     }
@@ -220,10 +226,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     _uiState.update { it.copy(users = response.body()!!.data, isLoading = false) }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "Error: ${response.code()}") }
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Error fetching users: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Exception fetching users: ${e.message}") }
             }
         }
     }
@@ -237,10 +243,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     fetchUsers()
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Failed to delete user: ${response.code()}") }
+                    _uiState.update { it.copy(errorMessage = "Failed to delete user: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to delete user: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = "Exception deleting user: ${e.message}") }
             }
         }
     }
@@ -254,10 +260,10 @@ class ManagerViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     fetchUsers()
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Failed to create user: ${response.code()}") }
+                    _uiState.update { it.copy(errorMessage = "Failed to create user: ${response.code()} ${response.message()}") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to create user: ${e.message}") }
+                _uiState.update { it.copy(errorMessage = "Exception creating user: ${e.message}") }
             }
         }
     }
